@@ -3,6 +3,12 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
+import oscillator from './math/oscillator/oscillator';
+import {getTransitionProgress, transitionNumber} from './math/transition-value';
+
+window.oscillator = oscillator;
+window.getTransitionProgress = getTransitionProgress;
+window.transitionNumber = transitionNumber;
 
 ReactDOM.render(<App />, document.getElementById('root'));
 
