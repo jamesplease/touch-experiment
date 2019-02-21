@@ -31,8 +31,12 @@ export default function oscillatorEquationsOfMotion({ m, k, initialPosition, ini
   const constantOne = initialPosition;
   const constantTwo = initialVelocity - ((b * constantOne) / (2 * m));
 
-  // Lastly, return the equation of motion
-  return function(t) {
-    return Math.exp(-2 * t) * (constantOne + constantTwo * t);
-  }
+  const timeToZero = -constantOne / constantTwo;
+
+  return {
+    timeToZero,
+    equationOfMotion: function(t) {
+      return Math.exp(-2 * t) * (constantOne + constantTwo * t);
+    }
+  };
 }

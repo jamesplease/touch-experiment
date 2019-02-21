@@ -24,7 +24,7 @@ export function getTransitionProgress({
     const result = clamp(0, easing(progress), 1);
 
     // We use our easing function to find the current position
-    onUpdate(result);
+    onUpdate(result, clamp(0, totalTime, durationMs));
 
     // Update the total time with however much time has passed since our lastTime.
     totalTime += Date.now() - lastTime;
