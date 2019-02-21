@@ -5,32 +5,44 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 import oscillator from './math/oscillator/oscillator';
 import {getTransitionProgress, transitionNumber} from './math/transition-value';
+import dampenValue from './math/oscillator/dampen-value';
 
 window.oscillator = oscillator;
 window.getTransitionProgress = getTransitionProgress;
 window.transitionNumber = transitionNumber;
 
-
-const { timeToZero, equationOfMotion } = oscillator({
-  m: 4,
-  k: 4,
+const { equationOfMotion } = oscillator({
+  m: 5,
+  k: 10,
   initialPosition: -5,
-  initialVelocity: 0
+  initialVelocity: 5
 });
 
-console.log('ow much time', timeToZero);
+dampenValue({
+  onUpdate(x) {
+    console.log('Got it!', x);
+  },
+  equationOfMotion
+});
 
-getTransitionProgress({
-  durationMs: 414,
-  easingFunction: 'linear',
-  onUpdate(val, elapsedTime) {
-    const x = equationOfMotion(elapsedTime / 100);
+// console.log('ow much time', timeToZero * 1000);
 
-    const position = Number(x.toFixed(2));
+// let logged = false;
 
-    console.log('The position is...', elapsedTime, position);
-  }
-})
+// getTransitionProgress({
+//   durationMs: 10000000,
+//   easingFunction: 'linear',
+//   onUpdate(val, elapsedTime) {
+//     const x = equationOfMotion(elapsedTime / 100);
+
+//     const position = Number(x.toFixed(2));
+
+//     if (position === 0 && !logged) {
+//       logged = true;
+//       console.log('Made it', elapsedTime);
+//     }
+//   }
+// })
 
 
 
