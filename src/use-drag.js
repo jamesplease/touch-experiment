@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import linearScale from './linear-scale';
+import linearScale from './math/linear-scale';
 
 const TRANSITION_TIME = 200;
 
@@ -40,6 +40,9 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
   const lastMoveTop = useRef();
   const currentStyles = useRef();
 
+  const lastMoveTime = useRef();
+  const velocity = useRef();
+
   useEffect(() => {
     currentStyles.current = styles;
   }, [styles]);
@@ -56,6 +59,8 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
       initialTopPixels.current = initialTopValue;
       initialPageY.current = touch.pageY;
       lastMoveTop.current = touch.pageY;
+      lastMoveTime.current = Date.now();
+      velocity.current = 0;
     }
   }
 
@@ -65,6 +70,7 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
     if (touches.length !== 1) {
       return;
     } else {
+
       const touch = touches[0];
 
       const delta = touch.pageY - initialPageY.current;
@@ -87,7 +93,22 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
         changeInTop = delta;
       }
 
+      const currentTime = Date.now();
+
+      const deltaPosition = changeInTop - lastMoveTop.current;
+      const deltaTime = currentTime - lastMoveTime.current;
+
+      let newVelocity = 0;
+      if (deltaTime > 0) {
+        newVelocity = deltaPosition / deltaTime;
+      }
+
       const newTopPixels = initialTopPixels.current + changeInTop;
+
+      velocity.current = newVelocity;
+      lastMoveTime.current = currentTime;
+      lastMoveTop.current = changeInTop;
+
       setStyles({
         ...currentStyles.current,
         top: `${newTopPixels}px`
@@ -97,6 +118,9 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
 
   function onTouchEnd() {
     lastMoveTop.current = 0;
+
+    // Maybe also calculate the velocity here?
+    console.log('what is velocity', velocity.current);
 
     const currentTopValue = getNumberFromPixel(currentStyles.current.top);
     const moveDistance = currentTopValue - initialTopPixels.current;
