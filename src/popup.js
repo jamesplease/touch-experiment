@@ -3,13 +3,24 @@ import './popup.css';
 import useDrag from './use-drag';
 
 export default function Popup() {
-  const [topPixels, setTopPixels] = useState(50);
+  const initialTop = '400px';
+
+  const [styles, setStyles] = useState({
+    top: initialTop
+  });
+
   const el = useRef();
 
-  useDrag(el, topPixels, setTopPixels);
+  useDrag({
+    initialTop,
+    el,
+    maxTopMovement: -100,
+    styles,
+    setStyles
+  });
 
   return (
-    <div ref={el} className="popup" style={{top: `${topPixels}px`}}>
+    <div ref={el} className="popup" style={styles}>
       Popup
     </div>
   )
