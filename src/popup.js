@@ -3,7 +3,7 @@ import './popup.css';
 import useDrag from './use-drag';
 
 export default function Popup() {
-  const initialTop = '400px';
+  const initialTop = '300px';
 
   const [styles, setStyles] = useState({
     top: initialTop

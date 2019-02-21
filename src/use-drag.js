@@ -7,12 +7,12 @@ function getNumberFromPixel(pixelValue) {
   return Number(pixelValue.split('px')[0]);
 }
 
-function transition(overEl, styles, setStyles, initialTop) {
+function transition(styles, setStyles, initialTop, moveDistance) {
   setStyles({
     pointerEvents: 'none',
     transition: 'none',
     top: initialTop,
-    transform: 'translateY(-100px)'
+    transform: `translateY(${moveDistance}px)`
   });
 
   requestAnimationFrame(() => {
@@ -101,7 +101,7 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
     const currentTopValue = getNumberFromPixel(currentStyles.current.top);
     const moveDistance = currentTopValue - initialTopPixels.current;
     if (moveDistance !== 0) {
-      transition(el.current, currentStyles.current, setStyles, initialTop);
+      transition(currentStyles.current, setStyles, initialTop, moveDistance);
     }
   }
 
