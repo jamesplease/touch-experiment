@@ -11,42 +11,25 @@ window.oscillator = oscillator;
 window.getTransitionProgress = getTransitionProgress;
 window.transitionNumber = transitionNumber;
 
+const initialPosition = -5;
+
 const { equationOfMotion } = oscillator({
-  m: 5,
-  k: 10,
-  initialPosition: -5,
-  initialVelocity: 5
+  m: 1,
+  k: 4,
+  initialPosition,
+  initialVelocity: 50
 });
 
 dampenValue({
-  onUpdate(x) {
-    console.log('Got it!', x);
+  initialPosition,
+  onUpdate({ position, time, velocity }) {
+      console.log('Got it!', { position, time, velocity });
+  },
+  onComplete(stuff) {
+    console.log('All done!', stuff);
   },
   equationOfMotion
 });
-
-// console.log('ow much time', timeToZero * 1000);
-
-// let logged = false;
-
-// getTransitionProgress({
-//   durationMs: 10000000,
-//   easingFunction: 'linear',
-//   onUpdate(val, elapsedTime) {
-//     const x = equationOfMotion(elapsedTime / 100);
-
-//     const position = Number(x.toFixed(2));
-
-//     if (position === 0 && !logged) {
-//       logged = true;
-//       console.log('Made it', elapsedTime);
-//     }
-//   }
-// })
-
-
-
-
 
 ReactDOM.render(<App />, document.getElementById('root'));
 

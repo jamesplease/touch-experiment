@@ -17,19 +17,12 @@
 // and another that does.
 //
 export default function oscillatorEquationsOfMotion({ m, k, initialPosition, initialVelocity }) {
-  // For critical damping,
-  //
-  // b^2 = 4mk
-  // or,
-  // b = 2 sqrt(mk)
-  // 
-  // Note that this result follows from the condition that, by definition, m,k > 0 and b >= 0
-  const b = 2 * Math.sqrt(m * k);
-
   // We can skip calculating the roots altogether and jump straight to the solution.
   // What we can do is calculate the constants in the general solution (c1 and c2)
   const constantOne = initialPosition;
-  const constantTwo = initialVelocity - ((b * constantOne) / (2 * m));
+  const constantTwo = initialVelocity + 2 * constantOne;
+
+  console.log('gu', constantOne, constantTwo);
 
   const timeToZero = -constantOne / constantTwo;
 
