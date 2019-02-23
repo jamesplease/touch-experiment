@@ -8,7 +8,7 @@ export default function Popup() {
   const coordinates = useTouchMovement({
     el,
     position: {
-      y: 200
+      y: 200,
     },
     maxTopMovement: -150,
     topDrag: null,
@@ -20,14 +20,17 @@ export default function Popup() {
     },
     onMovementEnd() {
       console.log('Movement end');
-    }
+    },
   });
 
   return (
-    <div ref={el} className="popup" style={{
-      top: `${coordinates.y}px`
-    }}>
+    <div
+      ref={el}
+      className="popup"
+      style={{
+        top: `${coordinates.y}px`,
+      }}>
       Popup
     </div>
-  )
+  );
 }

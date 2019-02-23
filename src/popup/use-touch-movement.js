@@ -2,7 +2,14 @@ import { useRef, useEffect, useState } from 'react';
 import linearScale from '../math/linear-scale';
 import springAnimation from './spring-animation';
 
-export default function useTouchMovement({ el, maxTopMovement, position, onMovementEnd, onTouchStart, onTouchEnd }) {
+export default function useTouchMovement({
+  el,
+  maxTopMovement,
+  position,
+  onMovementEnd,
+  onTouchStart,
+  onTouchEnd,
+}) {
   // Tip: don't use `coordinates` within this hook. Use `currentCoordinates.current`
   // instead!
   const [coordinates, updateCoordinates] = useState(position);
@@ -47,16 +54,16 @@ export default function useTouchMovement({ el, maxTopMovement, position, onMovem
       initialCoordinates.current = currentCoordinates.current;
 
       initialTouchCoordinates.current = {
-        pageY: touch.pageY
+        pageY: touch.pageY,
       };
 
       prevTouchCoordinates.current = {
-        pageY: touch.pageY
+        pageY: touch.pageY,
       };
-  
+
       lastMoveTime.current = Date.now();
       velocity.current = {
-        y: 0
+        y: 0,
       };
     }
   }
@@ -69,18 +76,19 @@ export default function useTouchMovement({ el, maxTopMovement, position, onMovem
     if (touches.length !== 1) {
       return;
     } else {
-
       const touch = touches[0];
 
       const delta = touch.pageY - initialTouchCoordinates.current.pageY;
 
       let changeInTop;
       if (delta < 0) {
-        const dampFactor = 1 - linearScale({
-          domain: [0, maxTopMovement * 2],
-          range: [0, 0.5],
-          value: delta
-        });
+        const dampFactor =
+          1 -
+          linearScale({
+            domain: [0, maxTopMovement * 2],
+            range: [0, 0.5],
+            value: delta,
+          });
 
         let modifiedDelta = delta * dampFactor;
 
@@ -100,21 +108,21 @@ export default function useTouchMovement({ el, maxTopMovement, position, onMovem
       let newVelocity = 0;
       if (deltaTime > 0) {
         // The x1000 here is on account of the conversion between ms and seconds.
-        newVelocity = deltaPosition / deltaTime * 1000;
+        newVelocity = (deltaPosition / deltaTime) * 1000;
       }
 
       const newTopPixels = initialCoordinates.current.y + changeInTop;
 
       velocity.current = {
-        y: newVelocity
+        y: newVelocity,
       };
       lastMoveTime.current = currentTime;
       prevTouchCoordinates.current = {
-        pageY: changeInTop
+        pageY: changeInTop,
       };
 
       updateCoordinates({
-        y: newTopPixels
+        y: newTopPixels,
       });
     }
   }
@@ -125,7 +133,7 @@ export default function useTouchMovement({ el, maxTopMovement, position, onMovem
     }
 
     prevTouchCoordinates.current = {
-      pageY: 0
+      pageY: 0,
     };
 
     const currentTopValue = currentCoordinates.current.y;
@@ -133,27 +141,27 @@ export default function useTouchMovement({ el, maxTopMovement, position, onMovem
 
     springAnimation({
       position: {
-        y: -initialPosition
+        y: -initialPosition,
       },
       velocity: velocity.current,
       onUpdate(v) {
         const newTop = v.y + initialCoordinates.current.y;
 
         updateCoordinates({
-          y: newTop
+          y: newTop,
         });
       },
       onComplete() {
         if (typeof onMovementEnd === 'function') {
           onMovementEnd();
         }
-      }
+      },
     });
   }
 
   useEffect(() => {
     prevTouchCoordinates.current = {
-      pageY: 0
+      pageY: 0,
     };
 
     el.current.addEventListener('touchstart', onTouchStartEvent);
@@ -166,7 +174,7 @@ export default function useTouchMovement({ el, maxTopMovement, position, onMovem
       el.current.remove('touchmove', onTouchMoveEvent);
       el.current.removeEventListener('touchcancel', onTouchEndEvent);
       el.current.removeEventListener('touchend', onTouchEndEvent);
-    }
+    };
   }, []);
 
   return coordinates;

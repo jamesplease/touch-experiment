@@ -12,8 +12,8 @@ export default function springAnimation({
   mass = 1,
   damping = 90,
   restDelta = 10,
-  restSpeed = 10
- }) {
+  restSpeed = 10,
+}) {
   spring({
     from: position,
     velocity: velocity,
@@ -22,7 +22,7 @@ export default function springAnimation({
     mass,
     damping,
     restDelta,
-    restSpeed
+    restSpeed,
   }).start({
     update: v => {
       if (typeof onUpdate === 'function') {
@@ -33,6 +33,6 @@ export default function springAnimation({
       if (typeof onComplete === 'function') {
         onComplete();
       }
-    }
+    },
   });
 }
