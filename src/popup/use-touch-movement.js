@@ -2,130 +2,300 @@ import { useRef, useEffect, useState } from 'react';
 import linearScale from '../math/linear-scale';
 import springAnimation from './spring-animation';
 
-export default function useTouchMovement({ el, maxTopMovement, position }) {
+export default function useTouchMovement({
+  el,
+  maxTopMovement,
+  position,
+  movement = {},
+  onMovementEnd,
+  onTouchStart,
+  onTouchEnd,
+}) {
+  const { x, y, left, right, up, down } = movement;
+
+  const rightIsDisabled = right === null;
+  const leftIsDisabled = left === null;
+  const upIsDisabled = up === null;
+  const downIsDisabled = down === null;
+
+  const disableXMovement = (rightIsDisabled && leftIsDisabled) || x === null;
+  const disableYMovement = (downIsDisabled && upIsDisabled) || y === null;
+
+  const restraints = {
+    left: typeof left === 'number' ? left : null,
+    right: typeof right === 'number' ? right : null,
+    up: typeof up === 'number' ? up : null,
+    down: typeof down === 'number' ? down : null,
+  };
+
+  // Tip: don't use `coordinates` within this hook. Use `currentCoordinates.current`
+  // instead!
   const [coordinates, updateCoordinates] = useState(position);
 
-  const initialTopPixels = useRef();
-  const initialPageY = useRef();
-  const lastMoveTop = useRef();
+  // A reference to the `position` that was initially passed in.
+  const initialCoordinates = useRef();
 
+  // The initial pageX/pageY of the touch event.
+  const initialTouchCoordinates = useRef();
+
+  // The previous time, in milliseconds, of the last movement. Used
+  // to calculate the velocity.
   const lastMoveTime = useRef();
+  // The latest pageX/pageY from the touch event. Used to calculate
+  // the velocity.
+  const prevTouchCoordinates = useRef();
+  // The current velocity of the swipe. Used when the touch ends
+  // to apply physics to the el.
   const velocity = useRef();
 
-  const currentCoordinates = useRef;
+  // A local reference to the coordinates
+  const currentCoordinates = useRef();
+
+  const isSpringingBack = useRef();
+  const isIgnoringTouch = useRef();
+
+  // This is to handle an edge case. If you drag an item, let go,
+  // and during its transition you try to touch it again, we set
+  // it as _ignoring_ the touch.
+  // isIgnoringTouch.current = false;
 
   useEffect(() => {
     currentCoordinates.current = coordinates;
   }, [coordinates]);
 
-  function onTouchStart(e) {
+  function onTouchStartEvent(e) {
     const touches = e.changedTouches;
     e.preventDefault();
     e.stopPropagation();
 
-    if (touches.length !== 1) {
+    if (isSpringingBack.current) {
+      isIgnoringTouch.current = true;
+    }
+
+    if (isSpringingBack.current) {
       return;
     } else {
+      if (typeof onTouchStart === 'function') {
+        onTouchStart();
+      }
+
       const touch = touches[0];
 
-      const initialTopValue = currentCoordinates.current.y;
-      initialTopPixels.current = initialTopValue;
-      initialPageY.current = touch.pageY;
-      lastMoveTop.current = touch.pageY;
+      initialCoordinates.current = currentCoordinates.current;
+
+      initialTouchCoordinates.current = {
+        pageX: touch.pageX,
+        pageY: touch.pageY,
+      };
+
+      prevTouchCoordinates.current = {
+        pageX: touch.pageX,
+        pageY: touch.pageY,
+      };
+
       lastMoveTime.current = Date.now();
-      velocity.current = 0;
+      velocity.current = {
+        x: 0,
+        y: 0,
+      };
     }
   }
 
-  function onTouchMove(e) {
+  function onTouchMoveEvent(e) {
     const touches = e.changedTouches;
     e.preventDefault();
     e.stopPropagation();
 
-    if (touches.length !== 1) {
+    if (isIgnoringTouch.current) {
       return;
     } else {
-
       const touch = touches[0];
 
-      const delta = touch.pageY - initialPageY.current;
+      const pageXDelta = touch.pageX - initialTouchCoordinates.current.pageX;
+      const pageYDelta = touch.pageY - initialTouchCoordinates.current.pageY;
 
-      let changeInTop;
-      if (delta < 0) {
-        const dampFactor = 1 - linearScale({
-          domain: [0, maxTopMovement * 2],
-          range: [0, 0.5],
-          value: delta
-        });
+      let changeInX;
+      let changeInY;
 
-        let modifiedDelta = delta * dampFactor;
-
-        if (modifiedDelta < maxTopMovement) {
-          modifiedDelta = maxTopMovement;
-        }
-        changeInTop = modifiedDelta;
+      if (disableXMovement) {
+        changeInX = 0;
       } else {
-        changeInTop = delta;
+        changeInX = pageXDelta;
+      }
+
+      if (disableYMovement) {
+        changeInY = 0;
+      } else if (upIsDisabled) {
+        changeInY = pageYDelta > 0 ? pageYDelta : 0;
+      } else if (downIsDisabled) {
+        changeInY = pageYDelta < 0 ? pageYDelta : 0;
+      } else {
+        changeInY = pageYDelta;
+      }
+
+      // Manage "damping" the Y coordinates
+      if (changeInY > 0 && restraints.down !== null) {
+        const dampFactor =
+          1 -
+          linearScale({
+            domain: [0, restraints.down * 2],
+            range: [0, 0.5],
+            value: changeInY,
+          });
+        let dampedChangeInY = changeInY * dampFactor;
+
+        if (dampedChangeInY > restraints.down) {
+          dampedChangeInY = restraints.down;
+        }
+
+        changeInY = dampedChangeInY;
+      } else if (changeInY < 0 && restraints.up !== null) {
+        const dampFactor =
+          1 -
+          linearScale({
+            domain: [0, restraints.up * 2],
+            range: [0, 0.5],
+            value: changeInY,
+          });
+        let dampedChangeInY = changeInY * dampFactor;
+
+        if (dampedChangeInY < restraints.up) {
+          dampedChangeInY = restraints.up;
+        }
+
+        changeInY = dampedChangeInY;
+      }
+
+      if (changeInX > 0 && restraints.right !== null) {
+        const dampFactor =
+          1 -
+          linearScale({
+            domain: [0, restraints.right * 2],
+            range: [0, 0.5],
+            value: changeInX,
+          });
+        let dampedChangeInX = changeInX * dampFactor;
+
+        if (dampedChangeInX > restraints.right) {
+          dampedChangeInX = restraints.right;
+        }
+
+        changeInX = dampedChangeInX;
+      } else if (changeInX < 0 && restraints.left !== null) {
+        const dampFactor =
+          1 -
+          linearScale({
+            domain: [0, restraints.left * 2],
+            range: [0, 0.5],
+            value: changeInX,
+          });
+        let dampedChangeInX = changeInX * dampFactor;
+
+        if (dampedChangeInX < restraints.left) {
+          dampedChangeInX = restraints.left;
+        }
+
+        changeInX = dampedChangeInX;
       }
 
       const currentTime = Date.now();
 
-      const deltaPosition = changeInTop - lastMoveTop.current;
+      const deltaX = changeInX - prevTouchCoordinates.current.pageX;
+      const deltaY = changeInY - prevTouchCoordinates.current.pageY;
       const deltaTime = currentTime - lastMoveTime.current;
 
-      let newVelocity = 0;
+      let newVelocityY = 0;
+      let newVelocityX = 0;
       if (deltaTime > 0) {
-        newVelocity = deltaPosition / deltaTime;
+        // The x1000 here is on account of the conversion between ms and seconds.
+        newVelocityX = (deltaX / deltaTime) * 1000;
+        newVelocityY = (deltaY / deltaTime) * 1000;
       }
 
-      const newTopPixels = initialTopPixels.current + changeInTop;
+      const newX = initialCoordinates.current.x + changeInX;
+      const newY = initialCoordinates.current.y + changeInY;
 
-      velocity.current = newVelocity;
+      velocity.current = {
+        x: newVelocityX,
+        y: newVelocityY,
+      };
       lastMoveTime.current = currentTime;
-      lastMoveTop.current = changeInTop;
+      prevTouchCoordinates.current = {
+        pageX: changeInX,
+        pageY: changeInY,
+      };
 
       updateCoordinates({
-        y: newTopPixels
+        x: newX,
+        y: newY,
       });
     }
   }
 
-  function onTouchEnd() {
-    lastMoveTop.current = 0;
+  function onTouchEndEvent() {
+    if (isIgnoringTouch.current) {
+      isIgnoringTouch.current = false;
+      return;
+    }
 
-    const currentTopValue = currentCoordinates.current.y;
-    const initialPosition = Number(initialTopPixels.current) - currentTopValue;
+    if (typeof onTouchEnd === 'function') {
+      onTouchEnd();
+    }
+
+    isSpringingBack.current = true;
+
+    prevTouchCoordinates.current = {
+      pageX: 0,
+      pageY: 0,
+    };
+
+    const initialX =
+      initialCoordinates.current.x - currentCoordinates.current.x;
+    const initialY =
+      initialCoordinates.current.y - currentCoordinates.current.y;
 
     springAnimation({
-      position: -initialPosition,
-      velocity: velocity.current * 1000,
-      onUpdate(v) {
-        const newTop = v.y + Number(initialTopPixels.current);
+      position: {
+        x: -initialX,
+        y: -initialY,
+      },
+      velocity: velocity.current,
+      onUpdate(update) {
+        const newX = update.x + initialCoordinates.current.x;
+        const newY = update.y + initialCoordinates.current.y;
 
         updateCoordinates({
-          y: newTop
+          x: newX,
+          y: newY,
         });
       },
       onComplete() {
-        // console.log('aruuugula');
-      }
+        isSpringingBack.current = false;
+
+        if (typeof onMovementEnd === 'function') {
+          onMovementEnd();
+        }
+      },
     });
   }
 
   useEffect(() => {
-    lastMoveTop.current = 0;
+    prevTouchCoordinates.current = {
+      pageX: 0,
+      pageY: 0,
+    };
 
-    el.current.addEventListener('touchstart', onTouchStart);
-    el.current.addEventListener('touchmove', onTouchMove);
-    el.current.addEventListener('touchcancel', onTouchEnd);
-    el.current.addEventListener('touchend', onTouchEnd);
+    el.current.addEventListener('touchstart', onTouchStartEvent);
+    el.current.addEventListener('touchmove', onTouchMoveEvent);
+    el.current.addEventListener('touchcancel', onTouchEndEvent);
+    el.current.addEventListener('touchend', onTouchEndEvent);
 
     return () => {
-      el.current.remove('touchstart', onTouchStart);
-      el.current.remove('touchmove', onTouchMove);
-      el.current.removeEventListener('touchcancel', onTouchEnd);
-      el.current.removeEventListener('touchend', onTouchEnd);
-    }
+      el.current.remove('touchstart', onTouchStartEvent);
+      el.current.remove('touchmove', onTouchMoveEvent);
+      el.current.removeEventListener('touchcancel', onTouchEndEvent);
+      el.current.removeEventListener('touchend', onTouchEndEvent);
+    };
   }, []);
 
   return coordinates;

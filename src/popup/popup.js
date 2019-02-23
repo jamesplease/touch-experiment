@@ -8,17 +8,37 @@ export default function Popup() {
   const coordinates = useTouchMovement({
     el,
     position: {
-      y: 200
+      x: 200,
+      y: 200,
     },
-    maxTopMovement: -150,
-    topDrag: null,
+    movement: {
+      x: null,
+      // y: null,
+      // left: -50,
+      // right: 100,
+      up: null,
+      // down: 50,
+    },
+    onTouchStart() {
+      // console.log('Touch start');
+    },
+    onTouchEnd() {
+      // console.log('Touch end');
+    },
+    onMovementEnd() {
+      // console.log('Movement end');
+    },
   });
 
   return (
-    <div ref={el} className="popup" style={{
-      top: `${coordinates.y}px`
-    }}>
+    <div
+      ref={el}
+      className="popup"
+      style={{
+        top: `${coordinates.y}px`,
+        left: `${coordinates.x}px`,
+      }}>
       Popup
     </div>
-  )
+  );
 }
