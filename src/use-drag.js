@@ -66,7 +66,7 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
         });
       },
       complete: () => {
-        console.log('done');
+        // console.log('done');
       }
     });
 
@@ -179,7 +179,6 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
     // if (moveDistance !== 0 && velocity.current < 0.3) {
     //   transition(currentStyles.current, setStyles, initialTop, moveDistance);
     // } else {
-      console.log('freefall!', velocity.current);
       freefall(-initialPosition, velocity.current * 1000);
     // }
   }
