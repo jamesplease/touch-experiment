@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
-import { spring } from 'popmotion';
 import linearScale from '../math/linear-scale';
+import springAnimation from './spring-animation';
 
 function getNumberFromPixel(pixelValue) {
   return Number(pixelValue.split('px')[0]);
@@ -18,28 +18,6 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
   useEffect(() => {
     currentStyles.current = styles;
   }, [styles]);
-
-  function freefall(initialPosition, velocity) {
-    spring({
-      from: { y: initialPosition },
-      velocity,
-      to: { y: 0 },
-      stiffness: 240,
-      mass: 1,
-      damping: 90,
-      restDelta: 10,
-      restSpeed: 10
-    }).start({
-      update: v => {
-        setStyles({
-          top: `${v.y + Number(initialTopPixels.current)}px`
-        });
-      },
-      complete: () => {
-        // console.log('done');
-      }
-    });
-  }
 
   function onTouchStart(e) {
     const touches = e.changedTouches;
@@ -117,13 +95,21 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
   function onTouchEnd() {
     lastMoveTop.current = 0;
 
-    // Maybe also calculate the velocity here?
-
     const currentTopValue = getNumberFromPixel(currentStyles.current.top);
-
     const initialPosition = Number(initialTopPixels.current) - currentTopValue;
 
-    freefall(-initialPosition, velocity.current * 1000);
+    springAnimation({
+      position: -initialPosition,
+      velocity: velocity.current * 1000,
+      onUpdate(v) {
+        setStyles({
+          top: `${v.y + Number(initialTopPixels.current)}px`
+        });
+      },
+      onComplete() {
+        console.log('aruuugula');
+      }
+    });
   }
 
   useEffect(() => {
