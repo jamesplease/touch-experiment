@@ -4,7 +4,6 @@ import springAnimation from './spring-animation';
 
 export default function useTouchMovement({
   el,
-  maxTopMovement,
   position,
   movement = {},
   onMovementEnd,
@@ -28,9 +27,11 @@ export default function useTouchMovement({
     down: typeof down === 'number' ? down : null,
   };
 
+  const defaultPosition = Object.assign({ x: null, y: null }, position);
+
   // Tip: don't use `coordinates` within this hook. Use `currentCoordinates.current`
   // instead!
-  const [coordinates, updateCoordinates] = useState(position);
+  const [coordinates, updateCoordinates] = useState(defaultPosition);
 
   // A reference to the `position` that was initially passed in.
   const initialCoordinates = useRef();
@@ -52,12 +53,22 @@ export default function useTouchMovement({
   const currentCoordinates = useRef();
 
   const isSpringingBack = useRef();
-  const isIgnoringTouch = useRef();
-
   // This is to handle an edge case. If you drag an item, let go,
   // and during its transition you try to touch it again, we set
   // it as _ignoring_ the touch.
-  // isIgnoringTouch.current = false;
+  const isIgnoringTouch = useRef();
+
+  // Keep the coordinates in sync with the position. This allows you to mount the
+  // element and pass in the coordinates.
+  // However, if you modify the position during a transition, it will have adverse effects.
+  let positionToUse =
+    position.x === null || position.y === null
+      ? { x: null, y: null }
+      : position;
+  useEffect(() => {
+    console.log('updating', positionToUse);
+    updateCoordinates(positionToUse);
+  }, [positionToUse.x, positionToUse.y]);
 
   useEffect(() => {
     currentCoordinates.current = coordinates;
@@ -298,5 +309,9 @@ export default function useTouchMovement({
     };
   }, []);
 
-  return coordinates;
+  if (coordinates.x !== null && coordinates.y !== null) {
+    return coordinates;
+  } else {
+    return null;
+  }
 }
