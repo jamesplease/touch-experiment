@@ -21,8 +21,6 @@ export default function useTouchMovement({
   const disableXMovement = (rightIsDisabled && leftIsDisabled) || x === null;
   const disableYMovement = (downIsDisabled && upIsDisabled) || y === null;
 
-  console.log('hi', disableYMovement);
-
   // const restraints = {
   //   left: typeof left === 'number' ? left : null,
   //   right: typeof right === 'number' ? right : null,
@@ -119,6 +117,8 @@ export default function useTouchMovement({
         changeInY = pageYDelta > 0 ? pageYDelta : 0;
       } else if (downIsDisabled) {
         changeInY = pageYDelta < 0 ? pageYDelta : 0;
+      } else {
+        changeInY = pageYDelta;
       }
 
       // if (changeInY > 0 && restraints.down !== null) {
