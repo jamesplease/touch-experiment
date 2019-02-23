@@ -1,11 +1,11 @@
 import React, { useRef } from 'react';
 import './popup.css';
-import useDrag from './use-drag';
+import useTouchMovement from './use-touch-movement';
 
 export default function Popup() {
   const el = useRef();
 
-  const coordinates = useDrag({
+  const coordinates = useTouchMovement({
     el,
     position: {
       y: 200

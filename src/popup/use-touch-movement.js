@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import linearScale from '../math/linear-scale';
 import springAnimation from './spring-animation';
 
-export default function useDrag({ el, maxTopMovement, position }) {
+export default function useTouchMovement({ el, maxTopMovement, position }) {
   const [coordinates, updateCoordinates] = useState(position);
 
   const initialTopPixels = useRef();
