@@ -49,7 +49,15 @@ export default function useTouchMovement({
   const velocity = useRef();
 
   // A local reference to the coordinates
-  const currentCoordinates = useRef;
+  const currentCoordinates = useRef();
+
+  const isSpringingBack = useRef();
+  const isIgnoringTouch = useRef();
+
+  // This is to handle an edge case. If you drag an item, let go,
+  // and during its transition you try to touch it again, we set
+  // it as _ignoring_ the touch.
+  // isIgnoringTouch.current = false;
 
   useEffect(() => {
     currentCoordinates.current = coordinates;
@@ -60,7 +68,11 @@ export default function useTouchMovement({
     e.preventDefault();
     e.stopPropagation();
 
-    if (touches.length !== 1) {
+    if (isSpringingBack.current) {
+      isIgnoringTouch.current = true;
+    }
+
+    if (touches.length !== 1 || isSpringingBack.current) {
       return;
     } else {
       if (typeof onTouchStart === 'function') {
@@ -94,7 +106,7 @@ export default function useTouchMovement({
     e.preventDefault();
     e.stopPropagation();
 
-    if (touches.length !== 1) {
+    if (touches.length !== 1 || isIgnoringTouch.current) {
       return;
     } else {
       const touch = touches[0];
@@ -221,9 +233,16 @@ export default function useTouchMovement({
   }
 
   function onTouchEndEvent() {
+    if (isIgnoringTouch.current) {
+      isIgnoringTouch.current = false;
+      return;
+    }
+
     if (typeof onTouchEnd === 'function') {
       onTouchEnd();
     }
+
+    isSpringingBack.current = true;
 
     prevTouchCoordinates.current = {
       pageX: 0,
@@ -251,6 +270,8 @@ export default function useTouchMovement({
         });
       },
       onComplete() {
+        isSpringingBack.current = false;
+
         if (typeof onMovementEnd === 'function') {
           onMovementEnd();
         }

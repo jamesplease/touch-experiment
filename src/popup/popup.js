@@ -12,21 +12,21 @@ export default function Popup() {
       y: 200,
     },
     movement: {
-      // x: null,
+      x: null,
       // y: null,
-      left: -50,
-      right: 100,
-      up: -50,
-      down: 250,
+      // left: -50,
+      // right: 100,
+      up: null,
+      // down: 50,
     },
     onTouchStart() {
-      console.log('Touch start');
+      // console.log('Touch start');
     },
     onTouchEnd() {
-      console.log('Touch end');
+      // console.log('Touch end');
     },
     onMovementEnd() {
-      console.log('Movement end');
+      // console.log('Movement end');
     },
   });
 
