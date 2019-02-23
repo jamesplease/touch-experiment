@@ -7,17 +7,22 @@ export default function springAnimation({
   position,
   velocity,
   onUpdate,
-  onComplete
+  onComplete,
+  stiffness = 240,
+  mass = 1,
+  damping = 90,
+  restDelta = 10,
+  restSpeed = 10
  }) {
   spring({
     from: { y: position },
     velocity: velocity,
     to: { y: 0 },
-    stiffness: 240,
-    mass: 1,
-    damping: 90,
-    restDelta: 10,
-    restSpeed: 10
+    stiffness,
+    mass,
+    damping,
+    restDelta,
+    restSpeed
   }).start({
     update: v => {
       if (typeof onUpdate === 'function') {

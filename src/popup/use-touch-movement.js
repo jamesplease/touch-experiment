@@ -5,9 +5,12 @@ import springAnimation from './spring-animation';
 export default function useTouchMovement({ el, maxTopMovement, position }) {
   const [coordinates, updateCoordinates] = useState(position);
 
-  const initialTopPixels = useRef();
-  const initialPageY = useRef();
-  const lastMoveTop = useRef();
+  const initialCoordinates = useRef();
+
+  // The initial pageX/pageY of the touch event.
+  const initialTouchCoordinates = useRef();
+  // The latest pageX/pageY from the touch event.
+  const prevTouchCoordinates = useRef();
 
   const lastMoveTime = useRef();
   const velocity = useRef();
@@ -28,10 +31,16 @@ export default function useTouchMovement({ el, maxTopMovement, position }) {
     } else {
       const touch = touches[0];
 
-      const initialTopValue = currentCoordinates.current.y;
-      initialTopPixels.current = initialTopValue;
-      initialPageY.current = touch.pageY;
-      lastMoveTop.current = touch.pageY;
+      initialCoordinates.current = currentCoordinates.current;
+
+      initialTouchCoordinates.current = {
+        pageY: touch.pageY
+      };
+
+      prevTouchCoordinates.current = {
+        pageY: touch.pageY
+      };
+  
       lastMoveTime.current = Date.now();
       velocity.current = 0;
     }
@@ -48,7 +57,7 @@ export default function useTouchMovement({ el, maxTopMovement, position }) {
 
       const touch = touches[0];
 
-      const delta = touch.pageY - initialPageY.current;
+      const delta = touch.pageY - initialTouchCoordinates.current.pageY;
 
       let changeInTop;
       if (delta < 0) {
@@ -70,19 +79,22 @@ export default function useTouchMovement({ el, maxTopMovement, position }) {
 
       const currentTime = Date.now();
 
-      const deltaPosition = changeInTop - lastMoveTop.current;
+      const deltaPosition = changeInTop - prevTouchCoordinates.current.pageY;
       const deltaTime = currentTime - lastMoveTime.current;
 
       let newVelocity = 0;
       if (deltaTime > 0) {
-        newVelocity = deltaPosition / deltaTime;
+        // The x1000 here is on account of the conversion between ms and seconds.
+        newVelocity = deltaPosition / deltaTime * 1000;
       }
 
-      const newTopPixels = initialTopPixels.current + changeInTop;
+      const newTopPixels = initialCoordinates.current.y + changeInTop;
 
       velocity.current = newVelocity;
       lastMoveTime.current = currentTime;
-      lastMoveTop.current = changeInTop;
+      prevTouchCoordinates.current = {
+        pageY: changeInTop
+      };
 
       updateCoordinates({
         y: newTopPixels
@@ -91,16 +103,18 @@ export default function useTouchMovement({ el, maxTopMovement, position }) {
   }
 
   function onTouchEnd() {
-    lastMoveTop.current = 0;
+    prevTouchCoordinates.current = {
+      pageY: 0
+    };
 
     const currentTopValue = currentCoordinates.current.y;
-    const initialPosition = Number(initialTopPixels.current) - currentTopValue;
+    const initialPosition = initialCoordinates.current.y - currentTopValue;
 
     springAnimation({
       position: -initialPosition,
-      velocity: velocity.current * 1000,
+      velocity: velocity.current,
       onUpdate(v) {
-        const newTop = v.y + Number(initialTopPixels.current);
+        const newTop = v.y + initialCoordinates.current.y;
 
         updateCoordinates({
           y: newTop
@@ -113,7 +127,9 @@ export default function useTouchMovement({ el, maxTopMovement, position }) {
   }
 
   useEffect(() => {
-    lastMoveTop.current = 0;
+    prevTouchCoordinates.current = {
+      pageY: 0
+    };
 
     el.current.addEventListener('touchstart', onTouchStart);
     el.current.addEventListener('touchmove', onTouchMove);
