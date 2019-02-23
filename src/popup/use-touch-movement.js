@@ -3,18 +3,27 @@ import linearScale from '../math/linear-scale';
 import springAnimation from './spring-animation';
 
 export default function useTouchMovement({ el, maxTopMovement, position }) {
+  // Tip: don't use `coordinates` within this hook. Use `currentCoordinates.current`
+  // instead!
   const [coordinates, updateCoordinates] = useState(position);
 
+  // A reference to the `position` that was initially passed in.
   const initialCoordinates = useRef();
 
   // The initial pageX/pageY of the touch event.
   const initialTouchCoordinates = useRef();
-  // The latest pageX/pageY from the touch event.
-  const prevTouchCoordinates = useRef();
 
+  // The previous time, in milliseconds, of the last movement. Used
+  // to calculate the velocity.
   const lastMoveTime = useRef();
+  // The latest pageX/pageY from the touch event. Used to calculate
+  // the velocity.
+  const prevTouchCoordinates = useRef();
+  // The current velocity of the swipe. Used when the touch ends
+  // to apply physics to the el.
   const velocity = useRef();
 
+  // A local reference to the coordinates
   const currentCoordinates = useRef;
 
   useEffect(() => {
@@ -42,7 +51,9 @@ export default function useTouchMovement({ el, maxTopMovement, position }) {
       };
   
       lastMoveTime.current = Date.now();
-      velocity.current = 0;
+      velocity.current = {
+        y: 0
+      };
     }
   }
 
@@ -90,7 +101,9 @@ export default function useTouchMovement({ el, maxTopMovement, position }) {
 
       const newTopPixels = initialCoordinates.current.y + changeInTop;
 
-      velocity.current = newVelocity;
+      velocity.current = {
+        y: newVelocity
+      };
       lastMoveTime.current = currentTime;
       prevTouchCoordinates.current = {
         pageY: changeInTop
