@@ -1,16 +1,8 @@
 import React, { useRef, useState } from 'react';
 import './popup.css';
 import useDrag from './use-drag';
-// import oscillator from './math/oscillator/oscillator';
-// import dampenValue from './math/oscillator/dampen-value';
-
-// const X_SCALE_FACTOR = 1;
-// const INITIAL_POSITION = -50;
-// const INITIAL_VELOCITY = 500;
-// const EQUILIBRIUM = 300;
 
 export default function Popup() {
-  // return null;
   const initialTop = `200px`;
 
   const [styles, setStyles] = useState({
