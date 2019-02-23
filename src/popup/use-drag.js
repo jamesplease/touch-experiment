@@ -2,11 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import linearScale from '../math/linear-scale';
 import springAnimation from './spring-animation';
 
-function getNumberFromPixel(pixelValue) {
-  return Number(pixelValue.split('px')[0]);
-}
-
-export default function useDrag({ el, maxTopMovement, styles, initialTop, topDrag, onUpdate }) {
+export default function useDrag({ el, maxTopMovement, initialTop }) {
   const [coordinates, updateCoordinates] = useState({
     y: initialTop
   });
@@ -14,14 +10,15 @@ export default function useDrag({ el, maxTopMovement, styles, initialTop, topDra
   const initialTopPixels = useRef();
   const initialPageY = useRef();
   const lastMoveTop = useRef();
-  const currentStyles = useRef();
 
   const lastMoveTime = useRef();
   const velocity = useRef();
 
+  const currentCoordinates = useRef;
+
   useEffect(() => {
-    currentStyles.current = styles;
-  }, [styles]);
+    currentCoordinates.current = coordinates;
+  }, [coordinates]);
 
   function onTouchStart(e) {
     const touches = e.changedTouches;
@@ -33,7 +30,7 @@ export default function useDrag({ el, maxTopMovement, styles, initialTop, topDra
     } else {
       const touch = touches[0];
 
-      const initialTopValue = getNumberFromPixel(currentStyles.current.top);
+      const initialTopValue = currentCoordinates.current.y;
       initialTopPixels.current = initialTopValue;
       initialPageY.current = touch.pageY;
       lastMoveTop.current = touch.pageY;
@@ -89,10 +86,6 @@ export default function useDrag({ el, maxTopMovement, styles, initialTop, topDra
       lastMoveTime.current = currentTime;
       lastMoveTop.current = changeInTop;
 
-      onUpdate({
-        y: newTopPixels
-      });
-
       updateCoordinates({
         y: newTopPixels
       });
@@ -102,7 +95,7 @@ export default function useDrag({ el, maxTopMovement, styles, initialTop, topDra
   function onTouchEnd() {
     lastMoveTop.current = 0;
 
-    const currentTopValue = getNumberFromPixel(currentStyles.current.top);
+    const currentTopValue = currentCoordinates.current.y;
     const initialPosition = Number(initialTopPixels.current) - currentTopValue;
 
     springAnimation({
@@ -110,10 +103,6 @@ export default function useDrag({ el, maxTopMovement, styles, initialTop, topDra
       velocity: velocity.current * 1000,
       onUpdate(v) {
         const newTop = v.y + Number(initialTopPixels.current);
-
-        onUpdate({
-          y: newTop
-        });
 
         updateCoordinates({
           y: newTop
