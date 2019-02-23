@@ -1,38 +1,38 @@
 import { useRef, useEffect } from 'react';
 import linearScale from './math/linear-scale';
+import { spring } from 'popmotion';
 
-const TRANSITION_TIME = 200;
+// const TRANSITION_TIME = 200;
 
 function getNumberFromPixel(pixelValue) {
   return Number(pixelValue.split('px')[0]);
 }
 
-function transition(styles, setStyles, initialTop, moveDistance) {
-  setStyles({
-    pointerEvents: 'none',
-    transition: 'none',
-    top: initialTop,
-    transform: `translateY(${moveDistance}px)`
-  });
+// function transition(styles, setStyles, initialTop, moveDistance) {
+//   setStyles({
+//     pointerEvents: 'none',
+//     transition: 'none',
+//     top: initialTop,
+//     transform: `translateY(${moveDistance}px)`
+//   });
 
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setStyles({
-        top: initialTop,
-        pointerEvents: 'none',
-        transition: `transform ${TRANSITION_TIME}ms ease-in-out`,
-        transform: 'none'
-      });
+//   requestAnimationFrame(() => {
+//     requestAnimationFrame(() => {
+//       setStyles({
+//         top: initialTop,
+//         pointerEvents: 'none',
+//         transition: `transform ${TRANSITION_TIME}ms ease-in-out`,
+//         transform: 'none'
+//       });
 
-      setTimeout(() => {
-        setStyles({
-          top: initialTop
-        });
-      }, TRANSITION_TIME);
-    });
-  });
-}
-
+//       setTimeout(() => {
+//         setStyles({
+//           top: initialTop
+//         });
+//       }, TRANSITION_TIME);
+//     });
+//   });
+// }
 
 export default function useDrag({ el, maxTopMovement, styles, setStyles, initialTop }) {
   const initialTopPixels = useRef();
@@ -47,8 +47,55 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
     currentStyles.current = styles;
   }, [styles]);
 
+  function freefall(initialPosition, velocity) {
+    spring({
+      from: { y: initialPosition },
+      velocity,
+      to: { y: 0 },
+      stiffness: 240,
+      mass: 1,
+      damping: 100,
+      restDelta: 10,
+      restSpeed: 10
+    }).start({
+      update: v => {
+        // console.log('hello', v);
+
+        setStyles({
+          top: `${v.y + Number(initialTopPixels.current)}px`
+        });
+      },
+      complete: () => {
+        console.log('done');
+      }
+    });
+
+    // const { equationOfMotion } = oscillator({
+    //   m: 1,
+    //   k: 4,
+    //   initialPosition,
+    //   initialVelocity
+    // });
+
+    // dampenValue({
+    //   initialPosition,
+    //   onUpdate({ position, time, velocity }) {
+
+    //     setStyles({
+    //       top: `${position + Number(initialTopPixels.current)}px`
+    //     });
+    //   },
+    //   onComplete(stuff) {
+    //     console.log('All done!', stuff);
+    //   },
+    //   equationOfMotion
+    // });
+  }
+
   function onTouchStart(e) {
     const touches = e.changedTouches;
+    e.preventDefault();
+    e.stopPropagation();
 
     if (touches.length !== 1) {
       return;
@@ -66,6 +113,8 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
 
   function onTouchMove(e) {
     const touches = e.changedTouches;
+    e.preventDefault();
+    e.stopPropagation();
 
     if (touches.length !== 1) {
       return;
@@ -120,13 +169,19 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
     lastMoveTop.current = 0;
 
     // Maybe also calculate the velocity here?
-    console.log('what is velocity', velocity.current);
+    // console.log('what is velocity', velocity.current);
 
     const currentTopValue = getNumberFromPixel(currentStyles.current.top);
-    const moveDistance = currentTopValue - initialTopPixels.current;
-    if (moveDistance !== 0) {
-      transition(currentStyles.current, setStyles, initialTop, moveDistance);
-    }
+    // const moveDistance = currentTopValue - initialTopPixels.current;
+
+    const initialPosition = Number(initialTopPixels.current) - currentTopValue;
+
+    // if (moveDistance !== 0 && velocity.current < 0.3) {
+    //   transition(currentStyles.current, setStyles, initialTop, moveDistance);
+    // } else {
+      console.log('freefall!', velocity.current);
+      freefall(-initialPosition, velocity.current * 1000);
+    // }
   }
 
   useEffect(() => {

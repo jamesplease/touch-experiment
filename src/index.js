@@ -3,33 +3,28 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
-import oscillator from './math/oscillator/oscillator';
-import {getTransitionProgress, transitionNumber} from './math/transition-value';
-import dampenValue from './math/oscillator/dampen-value';
+// import oscillator from './math/oscillator/oscillator';
+// import dampenValue from './math/oscillator/dampen-value';
 
-window.oscillator = oscillator;
-window.getTransitionProgress = getTransitionProgress;
-window.transitionNumber = transitionNumber;
+// const initialPosition = -5;
 
-const initialPosition = -5;
+// const { equationOfMotion } = oscillator({
+//   m: 1,
+//   k: 4,
+//   initialPosition,
+//   initialVelocity: 50
+// });
 
-const { equationOfMotion } = oscillator({
-  m: 1,
-  k: 4,
-  initialPosition,
-  initialVelocity: 50
-});
-
-dampenValue({
-  initialPosition,
-  onUpdate({ position, time, velocity }) {
-      console.log('Got it!', { position, time, velocity });
-  },
-  onComplete(stuff) {
-    console.log('All done!', stuff);
-  },
-  equationOfMotion
-});
+// dampenValue({
+//   initialPosition,
+//   onUpdate({ position, time, velocity }) {
+//       console.log('Got it!', { position, time, velocity });
+//   },
+//   onComplete(stuff) {
+//     console.log('All done!', stuff);
+//   },
+//   equationOfMotion
+// });
 
 ReactDOM.render(<App />, document.getElementById('root'));
 

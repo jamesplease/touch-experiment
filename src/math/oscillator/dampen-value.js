@@ -24,22 +24,26 @@ export default function dampenValue({
 
     const time = totalTime / 1000;
 
-    const rawPosition = equationOfMotion(time);
+    const position = equationOfMotion(time);
     // Round our position so that it eventually reaches 0.
     // Because of how smooth the curve is at the end, the values will hang around at,
     // say, 0.01 for quite some time. For initial velocities of zero, it'll never even
     // reach 0 (at least, mathematically. JavaScript will round it to 0 eventually).
     // This resolution should be sufficient for rendering.
-    const position = Number(rawPosition.toFixed(1));
     const currentTime = Date.now();
 
-    const velocity = (rawPosition - lastPosition)/(currentTime - lastTime);
+    const velocity = (position - lastPosition)/(currentTime - lastTime);
 
     onUpdate({ position, time, velocity });
 
+
     // The velocity check here guards against situations where the we are zooming
     // past equilibrium due to a high initial velocity toward it.
-    const mayBeNearingEnd = position === 0 && Math.abs(velocity) < 0.0001;
+    const mayBeNearingEnd = Math.abs(position) < 0.5 && Math.abs(velocity) < 0.001;
+
+    if (mayBeNearingEnd) {
+      console.log('wot', position, Math.abs(position));
+    }
 
     // If we're not nearing the end, then we keep going. We also add a check against infinite loops, just
     // to be safe.
@@ -49,7 +53,7 @@ export default function dampenValue({
 
       lastTime = currentTime;
       count = count + 1;
-      lastPosition = rawPosition;
+      lastPosition = position;
 
       requestAnimationFrame(moveNext);
     } else {
