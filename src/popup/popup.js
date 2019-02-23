@@ -14,9 +14,11 @@ export default function Popup() {
     maxTopMovement: -150,
     movement: {
       // x: null,
+      left: -50,
+      right: 100,
       // y: null,
-      // up: null,
-      // down: -150,
+      up: -50,
+      down: 250,
     },
     topDrag: null,
     onTouchStart() {

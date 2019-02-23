@@ -21,12 +21,12 @@ export default function useTouchMovement({
   const disableXMovement = (rightIsDisabled && leftIsDisabled) || x === null;
   const disableYMovement = (downIsDisabled && upIsDisabled) || y === null;
 
-  // const restraints = {
-  //   left: typeof left === 'number' ? left : null,
-  //   right: typeof right === 'number' ? right : null,
-  //   up: typeof up === 'number' ? up : null,
-  //   down: typeof down === 'number' ? down : null,
-  // };
+  const restraints = {
+    left: typeof left === 'number' ? left : null,
+    right: typeof right === 'number' ? right : null,
+    up: typeof up === 'number' ? up : null,
+    down: typeof down === 'number' ? down : null,
+  };
 
   // Tip: don't use `coordinates` within this hook. Use `currentCoordinates.current`
   // instead!
@@ -121,29 +121,70 @@ export default function useTouchMovement({
         changeInY = pageYDelta;
       }
 
-      // if (changeInY > 0 && restraints.down !== null) {
-      //   console.log('Gotta restrain you mboi');
-      // }
+      // Manage "damping" the Y coordinates
+      if (changeInY > 0 && restraints.down !== null) {
+        const dampFactor =
+          1 -
+          linearScale({
+            domain: [0, restraints.down * 2],
+            range: [0, 0.5],
+            value: changeInY,
+          });
+        let dampedChangeInY = changeInY * dampFactor;
 
-      // let changeInY;
-      // if (delta < 0) {
-      //   const dampFactor =
-      //     1 -
-      //     linearScale({
-      //       domain: [0, maxTopMovement * 2],
-      //       range: [0, 0.5],
-      //       value: delta,
-      //     });
+        if (dampedChangeInY > restraints.down) {
+          dampedChangeInY = restraints.down;
+        }
 
-      //   let modifiedDelta = delta * dampFactor;
+        changeInY = dampedChangeInY;
+      } else if (changeInY < 0 && restraints.up !== null) {
+        const dampFactor =
+          1 -
+          linearScale({
+            domain: [0, restraints.up * 2],
+            range: [0, 0.5],
+            value: changeInY,
+          });
+        let dampedChangeInY = changeInY * dampFactor;
 
-      //   if (modifiedDelta < maxTopMovement) {
-      //     modifiedDelta = maxTopMovement;
-      //   }
-      //   changeInY = modifiedDelta;
-      // } else {
-      //   changeInY = delta;
-      // }
+        if (dampedChangeInY < restraints.up) {
+          dampedChangeInY = restraints.up;
+        }
+
+        changeInY = dampedChangeInY;
+      }
+
+      if (changeInX > 0 && restraints.right !== null) {
+        const dampFactor =
+          1 -
+          linearScale({
+            domain: [0, restraints.right * 2],
+            range: [0, 0.5],
+            value: changeInX,
+          });
+        let dampedChangeInX = changeInX * dampFactor;
+
+        if (dampedChangeInX > restraints.right) {
+          dampedChangeInX = restraints.right;
+        }
+
+        changeInX = dampedChangeInX;
+      } else if (changeInX < 0 && restraints.left !== null) {
+        const dampFactor =
+          1 -
+          linearScale({
+            domain: [0, restraints.left * 2],
+            range: [0, 0.5],
+            value: changeInX,
+          });
+        let dampedChangeInX = changeInX * dampFactor;
+
+        if (dampedChangeInX < restraints.left) {
+          dampedChangeInX = restraints.left;
+        }
+
+        changeInX = dampedChangeInX;
+      }
 
       const currentTime = Date.now();
 
