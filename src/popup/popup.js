@@ -8,6 +8,7 @@ export default function Popup() {
   const coordinates = useTouchMovement({
     el,
     position: {
+      x: 150,
       y: 200,
     },
     maxTopMovement: -150,
@@ -29,6 +30,7 @@ export default function Popup() {
       className="popup"
       style={{
         top: `${coordinates.y}px`,
+        left: `${coordinates.x}px`,
       }}>
       Popup
     </div>

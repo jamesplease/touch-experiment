@@ -55,14 +55,17 @@ export default function useTouchMovement({
 
       initialTouchCoordinates.current = {
         pageY: touch.pageY,
+        pageX: touch.pageX,
       };
 
       prevTouchCoordinates.current = {
         pageY: touch.pageY,
+        pageX: touch.pageX,
       };
 
       lastMoveTime.current = Date.now();
       velocity.current = {
+        x: 0,
         y: 0,
       };
     }
@@ -114,14 +117,17 @@ export default function useTouchMovement({
       const newTopPixels = initialCoordinates.current.y + changeInTop;
 
       velocity.current = {
+        x: 0,
         y: newVelocity,
       };
       lastMoveTime.current = currentTime;
       prevTouchCoordinates.current = {
+        pageX: 0,
         pageY: changeInTop,
       };
 
       updateCoordinates({
+        x: currentCoordinates.current.x,
         y: newTopPixels,
       });
     }
@@ -133,22 +139,28 @@ export default function useTouchMovement({
     }
 
     prevTouchCoordinates.current = {
+      pageX: 0,
       pageY: 0,
     };
 
-    const currentTopValue = currentCoordinates.current.y;
-    const initialPosition = initialCoordinates.current.y - currentTopValue;
+    const initialX =
+      initialCoordinates.current.x - currentCoordinates.current.x;
+    const initialY =
+      initialCoordinates.current.y - currentCoordinates.current.y;
 
     springAnimation({
       position: {
-        y: -initialPosition,
+        x: initialX,
+        y: -initialY,
       },
       velocity: velocity.current,
-      onUpdate(v) {
-        const newTop = v.y + initialCoordinates.current.y;
+      onUpdate(update) {
+        const newX = update.x + initialCoordinates.current.x;
+        const newY = update.y + initialCoordinates.current.y;
 
         updateCoordinates({
-          y: newTop,
+          x: newX,
+          y: newY,
         });
       },
       onComplete() {
@@ -161,6 +173,7 @@ export default function useTouchMovement({
 
   useEffect(() => {
     prevTouchCoordinates.current = {
+      pageX: 0,
       pageY: 0,
     };
 
