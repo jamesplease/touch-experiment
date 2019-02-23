@@ -54,7 +54,7 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
       to: { y: 0 },
       stiffness: 240,
       mass: 1,
-      damping: 100,
+      damping: 90,
       restDelta: 10,
       restSpeed: 10
     }).start({
