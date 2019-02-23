@@ -12,6 +12,12 @@ export default function Popup() {
       y: 200,
     },
     maxTopMovement: -150,
+    movement: {
+      // x: null,
+      // y: null,
+      // up: null,
+      // down: -150,
+    },
     topDrag: null,
     onTouchStart() {
       console.log('Touch start');

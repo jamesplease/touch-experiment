@@ -6,10 +6,30 @@ export default function useTouchMovement({
   el,
   maxTopMovement,
   position,
+  movement = {},
   onMovementEnd,
   onTouchStart,
   onTouchEnd,
 }) {
+  const { x, y, left, right, up, down } = movement;
+
+  const rightIsDisabled = right === null;
+  const leftIsDisabled = left === null;
+  const upIsDisabled = up === null;
+  const downIsDisabled = down === null;
+
+  const disableXMovement = (rightIsDisabled && leftIsDisabled) || x === null;
+  const disableYMovement = (downIsDisabled && upIsDisabled) || y === null;
+
+  console.log('hi', disableYMovement);
+
+  // const restraints = {
+  //   left: typeof left === 'number' ? left : null,
+  //   right: typeof right === 'number' ? right : null,
+  //   up: typeof up === 'number' ? up : null,
+  //   down: typeof down === 'number' ? down : null,
+  // };
+
   // Tip: don't use `coordinates` within this hook. Use `currentCoordinates.current`
   // instead!
   const [coordinates, updateCoordinates] = useState(position);
@@ -54,13 +74,13 @@ export default function useTouchMovement({
       initialCoordinates.current = currentCoordinates.current;
 
       initialTouchCoordinates.current = {
-        pageY: touch.pageY,
         pageX: touch.pageX,
+        pageY: touch.pageY,
       };
 
       prevTouchCoordinates.current = {
-        pageY: touch.pageY,
         pageX: touch.pageX,
+        pageY: touch.pageY,
       };
 
       lastMoveTime.current = Date.now();
@@ -84,8 +104,26 @@ export default function useTouchMovement({
       const pageXDelta = touch.pageX - initialTouchCoordinates.current.pageX;
       const pageYDelta = touch.pageY - initialTouchCoordinates.current.pageY;
 
-      const changeInX = pageXDelta;
-      const changeInY = pageYDelta;
+      let changeInX;
+      let changeInY;
+
+      if (disableXMovement) {
+        changeInX = 0;
+      } else {
+        changeInX = pageXDelta;
+      }
+
+      if (disableYMovement) {
+        changeInY = 0;
+      } else if (upIsDisabled) {
+        changeInY = pageYDelta > 0 ? pageYDelta : 0;
+      } else if (downIsDisabled) {
+        changeInY = pageYDelta < 0 ? pageYDelta : 0;
+      }
+
+      // if (changeInY > 0 && restraints.down !== null) {
+      //   console.log('Gotta restrain you mboi');
+      // }
 
       // let changeInY;
       // if (delta < 0) {
