@@ -2,10 +2,8 @@ import { useRef, useEffect, useState } from 'react';
 import linearScale from '../math/linear-scale';
 import springAnimation from './spring-animation';
 
-export default function useDrag({ el, maxTopMovement, initialTop }) {
-  const [coordinates, updateCoordinates] = useState({
-    y: initialTop
-  });
+export default function useDrag({ el, maxTopMovement, position }) {
+  const [coordinates, updateCoordinates] = useState(position);
 
   const initialTopPixels = useRef();
   const initialPageY = useRef();
@@ -109,7 +107,7 @@ export default function useDrag({ el, maxTopMovement, initialTop }) {
         });
       },
       onComplete() {
-        console.log('aruuugula');
+        // console.log('aruuugula');
       }
     });
   }

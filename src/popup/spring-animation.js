@@ -20,7 +20,9 @@ export default function springAnimation({
     restSpeed: 10
   }).start({
     update: v => {
-      onUpdate(v);
+      if (typeof onUpdate === 'function') {
+        onUpdate(v);
+      }
     },
     complete: () => {
       if (typeof onComplete === 'function') {

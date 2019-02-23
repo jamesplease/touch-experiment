@@ -7,7 +7,9 @@ export default function Popup() {
 
   const coordinates = useDrag({
     el,
-    initialTop: 200,
+    position: {
+      y: 200
+    },
     maxTopMovement: -150,
     topDrag: null,
   });
