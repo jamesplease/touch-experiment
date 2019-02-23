@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import linearScale from '../math/linear-scale';
 import springAnimation from './spring-animation';
 
-export default function useTouchMovement({ el, maxTopMovement, position }) {
+export default function useTouchMovement({ el, maxTopMovement, position, onMovementEnd, onTouchStart, onTouchEnd }) {
   // Tip: don't use `coordinates` within this hook. Use `currentCoordinates.current`
   // instead!
   const [coordinates, updateCoordinates] = useState(position);
@@ -30,7 +30,7 @@ export default function useTouchMovement({ el, maxTopMovement, position }) {
     currentCoordinates.current = coordinates;
   }, [coordinates]);
 
-  function onTouchStart(e) {
+  function onTouchStartEvent(e) {
     const touches = e.changedTouches;
     e.preventDefault();
     e.stopPropagation();
@@ -38,6 +38,10 @@ export default function useTouchMovement({ el, maxTopMovement, position }) {
     if (touches.length !== 1) {
       return;
     } else {
+      if (typeof onTouchStart === 'function') {
+        onTouchStart();
+      }
+
       const touch = touches[0];
 
       initialCoordinates.current = currentCoordinates.current;
@@ -57,7 +61,7 @@ export default function useTouchMovement({ el, maxTopMovement, position }) {
     }
   }
 
-  function onTouchMove(e) {
+  function onTouchMoveEvent(e) {
     const touches = e.changedTouches;
     e.preventDefault();
     e.stopPropagation();
@@ -115,7 +119,11 @@ export default function useTouchMovement({ el, maxTopMovement, position }) {
     }
   }
 
-  function onTouchEnd() {
+  function onTouchEndEvent() {
+    if (typeof onTouchEnd === 'function') {
+      onTouchEnd();
+    }
+
     prevTouchCoordinates.current = {
       pageY: 0
     };
@@ -124,7 +132,9 @@ export default function useTouchMovement({ el, maxTopMovement, position }) {
     const initialPosition = initialCoordinates.current.y - currentTopValue;
 
     springAnimation({
-      position: -initialPosition,
+      position: {
+        y: -initialPosition
+      },
       velocity: velocity.current,
       onUpdate(v) {
         const newTop = v.y + initialCoordinates.current.y;
@@ -134,7 +144,9 @@ export default function useTouchMovement({ el, maxTopMovement, position }) {
         });
       },
       onComplete() {
-        // console.log('aruuugula');
+        if (typeof onMovementEnd === 'function') {
+          onMovementEnd();
+        }
       }
     });
   }
@@ -144,16 +156,16 @@ export default function useTouchMovement({ el, maxTopMovement, position }) {
       pageY: 0
     };
 
-    el.current.addEventListener('touchstart', onTouchStart);
-    el.current.addEventListener('touchmove', onTouchMove);
-    el.current.addEventListener('touchcancel', onTouchEnd);
-    el.current.addEventListener('touchend', onTouchEnd);
+    el.current.addEventListener('touchstart', onTouchStartEvent);
+    el.current.addEventListener('touchmove', onTouchMoveEvent);
+    el.current.addEventListener('touchcancel', onTouchEndEvent);
+    el.current.addEventListener('touchend', onTouchEndEvent);
 
     return () => {
-      el.current.remove('touchstart', onTouchStart);
-      el.current.remove('touchmove', onTouchMove);
-      el.current.removeEventListener('touchcancel', onTouchEnd);
-      el.current.removeEventListener('touchend', onTouchEnd);
+      el.current.remove('touchstart', onTouchStartEvent);
+      el.current.remove('touchmove', onTouchMoveEvent);
+      el.current.removeEventListener('touchcancel', onTouchEndEvent);
+      el.current.removeEventListener('touchend', onTouchEndEvent);
     }
   }, []);
 

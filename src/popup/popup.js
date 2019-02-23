@@ -12,6 +12,15 @@ export default function Popup() {
     },
     maxTopMovement: -150,
     topDrag: null,
+    onTouchStart() {
+      console.log('Touch start');
+    },
+    onTouchEnd() {
+      console.log('Touch end');
+    },
+    onMovementEnd() {
+      console.log('Movement end');
+    }
   });
 
   return (

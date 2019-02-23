@@ -15,9 +15,9 @@ export default function springAnimation({
   restSpeed = 10
  }) {
   spring({
-    from: { y: position },
+    from: position,
     velocity: velocity,
-    to: { y: 0 },
+    to: { y: 0, x: 0 },
     stiffness,
     mass,
     damping,
