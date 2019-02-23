@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import linearScale from '../math/linear-scale';
 import springAnimation from './spring-animation';
 
@@ -6,7 +6,11 @@ function getNumberFromPixel(pixelValue) {
   return Number(pixelValue.split('px')[0]);
 }
 
-export default function useDrag({ el, maxTopMovement, styles, setStyles, initialTop }) {
+export default function useDrag({ el, maxTopMovement, styles, initialTop, topDrag, onUpdate }) {
+  const [coordinates, updateCoordinates] = useState({
+    y: initialTop
+  });
+
   const initialTopPixels = useRef();
   const initialPageY = useRef();
   const lastMoveTop = useRef();
@@ -85,9 +89,12 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
       lastMoveTime.current = currentTime;
       lastMoveTop.current = changeInTop;
 
-      setStyles({
-        ...currentStyles.current,
-        top: `${newTopPixels}px`
+      onUpdate({
+        y: newTopPixels
+      });
+
+      updateCoordinates({
+        y: newTopPixels
       });
     }
   }
@@ -102,8 +109,14 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
       position: -initialPosition,
       velocity: velocity.current * 1000,
       onUpdate(v) {
-        setStyles({
-          top: `${v.y + Number(initialTopPixels.current)}px`
+        const newTop = v.y + Number(initialTopPixels.current);
+
+        onUpdate({
+          y: newTop
+        });
+
+        updateCoordinates({
+          y: newTop
         });
       },
       onComplete() {
@@ -127,4 +140,6 @@ export default function useDrag({ el, maxTopMovement, styles, setStyles, initial
       el.current.removeEventListener('touchend', onTouchEnd);
     }
   }, []);
+
+  return coordinates;
 }

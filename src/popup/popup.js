@@ -15,8 +15,15 @@ export default function Popup() {
     initialTop,
     el,
     maxTopMovement: -150,
+    topDrag: null,
     styles,
-    setStyles
+    setStyles,
+    onUpdate(update) {
+      setStyles({
+        ...styles,
+        top: `${update.y}px`
+      });
+    }
   });
 
   return (
