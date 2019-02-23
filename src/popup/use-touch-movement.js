@@ -72,7 +72,7 @@ export default function useTouchMovement({
       isIgnoringTouch.current = true;
     }
 
-    if (touches.length !== 1 || isSpringingBack.current) {
+    if (isSpringingBack.current) {
       return;
     } else {
       if (typeof onTouchStart === 'function') {
@@ -106,7 +106,7 @@ export default function useTouchMovement({
     e.preventDefault();
     e.stopPropagation();
 
-    if (touches.length !== 1 || isIgnoringTouch.current) {
+    if (isIgnoringTouch.current) {
       return;
     } else {
       const touch = touches[0];
