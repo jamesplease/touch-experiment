@@ -81,54 +81,62 @@ export default function useTouchMovement({
     } else {
       const touch = touches[0];
 
-      const delta = touch.pageY - initialTouchCoordinates.current.pageY;
+      const pageXDelta = touch.pageX - initialTouchCoordinates.current.pageX;
+      const pageYDelta = touch.pageY - initialTouchCoordinates.current.pageY;
 
-      let changeInTop;
-      if (delta < 0) {
-        const dampFactor =
-          1 -
-          linearScale({
-            domain: [0, maxTopMovement * 2],
-            range: [0, 0.5],
-            value: delta,
-          });
+      const changeInX = pageXDelta;
+      const changeInY = pageYDelta;
 
-        let modifiedDelta = delta * dampFactor;
+      // let changeInY;
+      // if (delta < 0) {
+      //   const dampFactor =
+      //     1 -
+      //     linearScale({
+      //       domain: [0, maxTopMovement * 2],
+      //       range: [0, 0.5],
+      //       value: delta,
+      //     });
 
-        if (modifiedDelta < maxTopMovement) {
-          modifiedDelta = maxTopMovement;
-        }
-        changeInTop = modifiedDelta;
-      } else {
-        changeInTop = delta;
-      }
+      //   let modifiedDelta = delta * dampFactor;
+
+      //   if (modifiedDelta < maxTopMovement) {
+      //     modifiedDelta = maxTopMovement;
+      //   }
+      //   changeInY = modifiedDelta;
+      // } else {
+      //   changeInY = delta;
+      // }
 
       const currentTime = Date.now();
 
-      const deltaPosition = changeInTop - prevTouchCoordinates.current.pageY;
+      const deltaX = changeInX - prevTouchCoordinates.current.pageX;
+      const deltaY = changeInY - prevTouchCoordinates.current.pageY;
       const deltaTime = currentTime - lastMoveTime.current;
 
-      let newVelocity = 0;
+      let newVelocityY = 0;
+      let newVelocityX = 0;
       if (deltaTime > 0) {
         // The x1000 here is on account of the conversion between ms and seconds.
-        newVelocity = (deltaPosition / deltaTime) * 1000;
+        newVelocityX = (deltaX / deltaTime) * 1000;
+        newVelocityY = (deltaY / deltaTime) * 1000;
       }
 
-      const newTopPixels = initialCoordinates.current.y + changeInTop;
+      const newX = initialCoordinates.current.x + changeInX;
+      const newY = initialCoordinates.current.y + changeInY;
 
       velocity.current = {
-        x: 0,
-        y: newVelocity,
+        x: newVelocityX,
+        y: newVelocityY,
       };
       lastMoveTime.current = currentTime;
       prevTouchCoordinates.current = {
-        pageX: 0,
-        pageY: changeInTop,
+        pageX: changeInX,
+        pageY: changeInY,
       };
 
       updateCoordinates({
-        x: currentCoordinates.current.x,
-        y: newTopPixels,
+        x: newX,
+        y: newY,
       });
     }
   }
@@ -150,7 +158,7 @@ export default function useTouchMovement({
 
     springAnimation({
       position: {
-        x: initialX,
+        x: -initialX,
         y: -initialY,
       },
       velocity: velocity.current,
