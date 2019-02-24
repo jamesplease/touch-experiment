@@ -1,15 +1,19 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import Popup from './popup/popup';
 
-class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <Popup />
-      </div>
-    );
-  }
-}
+export default function App() {
+  const [isShowingAlert, setIsShowingAlert] = useState(false);
 
-export default App;
+  useEffect(() => {
+    setTimeout(() => {
+      setIsShowingAlert(true);
+    }, 3000);
+  }, []);
+
+  return (
+    <div className="App">
+      {isShowingAlert && <Popup onClose={() => setIsShowingAlert(false)} />}
+    </div>
+  );
+}

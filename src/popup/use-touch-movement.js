@@ -305,7 +305,7 @@ export default function useTouchMovement({
         isSpringingBack.current = false;
 
         if (typeof onMovementEnd === 'function') {
-          onMovementEnd();
+          onMovementEnd(destinationPoint);
         }
       },
     });

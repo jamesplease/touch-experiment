@@ -3,18 +3,20 @@ import classnames from 'classnames';
 import './popup.css';
 import useTouchMovement from './use-touch-movement';
 
-export default function Popup() {
+export default function Popup({ onClose }) {
   const el = useRef();
   const [isTouchActive, setIsTouchActive] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
 
   useLayoutEffect(() => {
-    setTimeout(() => {
-      setHasMounted(true);
-      setTimeout(() => {
-        setIsTouchActive(true);
-      }, 450);
-    }, 1000);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setHasMounted(true);
+        setTimeout(() => {
+          setIsTouchActive(true);
+        }, 450);
+      });
+    });
   }, []);
 
   const coordinates = useTouchMovement({
@@ -22,7 +24,7 @@ export default function Popup() {
     active: isTouchActive,
     points: [
       // Offscreen
-      { x: 200, y: -250, influencePoint: { x: 200, y: -70 } },
+      { x: 200, y: -250, influencePoint: { x: 200, y: -70 }, label: 'out' },
       // Onscreen
       { x: 200, y: 20, initial: true },
     ],
@@ -38,6 +40,11 @@ export default function Popup() {
     },
     // endingVelocity: true,
     // endingVelocityScale: 12,
+    onMovementEnd(endPosition) {
+      if (endPosition.label === 'out') {
+        onClose();
+      }
+    },
   });
 
   let coordsToUse;
