@@ -2,6 +2,10 @@ import { useRef, useEffect, useState } from 'react';
 import linearScale from '../math/linear-scale';
 import springAnimation from './spring-animation';
 
+// If the touch end event occurs after this amount of time,
+// then we will use a velocity of 0.
+const VELOCITY_CHECK_FREQUENCY = 100;
+
 export default function useTouchMovement({
   el,
   maxTopMovement,
@@ -10,6 +14,8 @@ export default function useTouchMovement({
   onMovementEnd,
   onTouchStart,
   onTouchEnd,
+  endingVelocity,
+  endingVelocityScale = 12,
 }) {
   const { x, y, left, right, up, down } = movement;
 
@@ -22,10 +28,10 @@ export default function useTouchMovement({
   const disableYMovement = (downIsDisabled && upIsDisabled) || y === null;
 
   const restraints = {
-    left: typeof left === 'number' ? left : null,
-    right: typeof right === 'number' ? right : null,
-    up: typeof up === 'number' ? up : null,
-    down: typeof down === 'number' ? down : null,
+    left: typeof left !== 'undefined' ? left : null,
+    right: typeof right !== 'undefined' ? right : null,
+    up: typeof up !== 'undefined' ? up : null,
+    down: typeof down !== 'undefined' ? down : null,
   };
 
   // Tip: don't use `coordinates` within this hook. Use `currentCoordinates.current`
@@ -149,21 +155,26 @@ export default function useTouchMovement({
         }
 
         changeInY = dampedChangeInY;
-      } else if (changeInY < 0 && restraints.up !== null) {
-        const dampFactor =
-          1 -
-          linearScale({
-            domain: [0, restraints.up * 2],
-            range: [0, 0.5],
-            value: changeInY,
-          });
-        let dampedChangeInY = changeInY * dampFactor;
+      } else if (changeInY < 0) {
+        if (typeof restraints.up === 'number') {
+          const dampFactor =
+            1 -
+            linearScale({
+              domain: [0, -restraints.up * 2],
+              range: [0, 0.5],
+              value: changeInY,
+            });
+          let dampedChangeInY = changeInY * dampFactor;
 
-        if (dampedChangeInY < restraints.up) {
-          dampedChangeInY = restraints.up;
+          if (dampedChangeInY < -restraints.up) {
+            dampedChangeInY = -restraints.up;
+          }
+
+          changeInY = dampedChangeInY;
+        } else if (restraints.up === 'drag') {
+          const absoluteChange = Math.abs(changeInY);
+          changeInY = -Math.pow(absoluteChange, 0.7);
         }
-
-        changeInY = dampedChangeInY;
       }
 
       if (changeInX > 0 && restraints.right !== null) {
@@ -181,18 +192,18 @@ export default function useTouchMovement({
         }
 
         changeInX = dampedChangeInX;
-      } else if (changeInX < 0 && restraints.left !== null) {
+      } else if (changeInX < 0 && -restraints.left !== null) {
         const dampFactor =
           1 -
           linearScale({
-            domain: [0, restraints.left * 2],
+            domain: [0, -restraints.left * 2],
             range: [0, 0.5],
             value: changeInX,
           });
         let dampedChangeInX = changeInX * dampFactor;
 
-        if (dampedChangeInX < restraints.left) {
-          dampedChangeInX = restraints.left;
+        if (dampedChangeInX < -restraints.left) {
+          dampedChangeInX = -restraints.left;
         }
 
         changeInX = dampedChangeInX;
@@ -232,7 +243,7 @@ export default function useTouchMovement({
     }
   }
 
-  function onTouchEndEvent() {
+  function onTouchEndEvent(e) {
     if (isIgnoringTouch.current) {
       isIgnoringTouch.current = false;
       return;
@@ -254,12 +265,44 @@ export default function useTouchMovement({
     const initialY =
       initialCoordinates.current.y - currentCoordinates.current.y;
 
+    const currentTime = Date.now();
+    const deltaTime = currentTime - lastMoveTime.current;
+
+    let velocityToUse;
+    let stiffness;
+    let restSpeed;
+    let restDelta;
+    if (deltaTime > VELOCITY_CHECK_FREQUENCY) {
+      const size = Math.abs(initialY);
+      const direction = initialY > 0 ? 1 : -1;
+
+      velocityToUse = endingVelocity
+        ? direction * Math.pow(size, 1.085) * endingVelocityScale
+        : 0;
+
+      velocityToUse = {
+        x: 0,
+        y: velocityToUse,
+      };
+      stiffness = 200;
+      restSpeed = 0.1;
+      restDelta = 0.1;
+    } else {
+      velocityToUse = velocity.current;
+      stiffness = 240;
+      restSpeed = 10;
+      restDelta = 10;
+    }
+
     springAnimation({
       position: {
         x: -initialX,
         y: -initialY,
       },
-      velocity: velocity.current,
+      stiffness,
+      velocity: velocityToUse,
+      restSpeed,
+      restDelta,
       onUpdate(update) {
         const newX = update.x + initialCoordinates.current.x;
         const newY = update.y + initialCoordinates.current.y;

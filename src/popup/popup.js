@@ -16,9 +16,11 @@ export default function Popup() {
       // y: null,
       // left: -50,
       // right: 100,
-      up: null,
+      up: 'drag',
       // down: 50,
     },
+    endingVelocity: true,
+    endingVelocityScale: 12,
     onTouchStart() {
       // console.log('Touch start');
     },
@@ -36,7 +38,7 @@ export default function Popup() {
       className="popup"
       style={{
         top: `${coordinates.y}px`,
-        left: `${coordinates.x}px`,
+        // left: `${coordinates.x}px`,
       }}>
       Popup
     </div>
