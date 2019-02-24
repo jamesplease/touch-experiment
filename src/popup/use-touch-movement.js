@@ -139,25 +139,19 @@ export default function useTouchMovement({
         changeInY = pageYDelta;
       }
 
-      // Manage "damping" the Y coordinates
-      if (changeInY > 0) {
-        if (typeof restraints.down === 'number') {
-          if (Math.abs(changeInY) > restraints.down) {
-            changeInY = restraints.down;
-          }
-        } else if (restraints.down === 'drag') {
-          const absoluteChange = Math.abs(changeInY);
-          changeInY = Math.pow(absoluteChange, 0.7);
+      const hasChangedY = changeInY !== 0;
+      const yDirection = hasChangedY && changeInY > 0 ? 'down' : 'up';
+      const yRestraint = restraints[yDirection];
+      const absChangeInY = Math.abs(changeInY);
+      const yDirectionModifier = yDirection === 'up' ? -1 : 1;
+
+      if (typeof yRestraint === 'number') {
+        if (absChangeInY > yRestraint) {
+          changeInY = yDirectionModifier * yRestraint;
         }
-      } else if (changeInY < 0) {
-        if (typeof restraints.up === 'number') {
-          if (Math.abs(changeInY) > restraints.up) {
-            changeInY = -restraints.up;
-          }
-        } else if (restraints.up === 'drag') {
-          const absoluteChange = Math.abs(changeInY);
-          changeInY = -Math.pow(absoluteChange, 0.7);
-        }
+      } else if (yRestraint === 'drag') {
+        // TODO: set the drag factor as a config option
+        changeInY = yDirectionModifier * Math.pow(absChangeInY, 0.7);
       }
 
       if (changeInX > 0 && restraints.right !== null) {

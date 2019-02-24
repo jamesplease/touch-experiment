@@ -16,7 +16,7 @@ export default function Popup() {
       // y: null,
       // left: -50,
       // right: 100,
-      up: 50,
+      up: 'drag',
       down: 'drag',
     },
     endingVelocity: true,
