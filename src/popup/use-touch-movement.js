@@ -1,5 +1,4 @@
 import { useRef, useEffect, useState } from 'react';
-import linearScale from '../math/linear-scale';
 import springAnimation from './spring-animation';
 
 // If the touch end event occurs after this amount of time,
@@ -8,7 +7,7 @@ const VELOCITY_CHECK_FREQUENCY = 100;
 
 export default function useTouchMovement({
   el,
-  maxTopMovement,
+  active,
   position,
   movement = {},
   onMovementEnd,
@@ -151,7 +150,7 @@ export default function useTouchMovement({
         }
       } else if (yRestraint === 'drag') {
         // TODO: set the drag factor as a config option
-        changeInY = yDirectionModifier * Math.pow(absChangeInY, 0.7);
+        changeInY = yDirectionModifier * Math.pow(absChangeInY, 0.75);
       }
 
       const hasChangedX = changeInX !== 0;
@@ -166,7 +165,7 @@ export default function useTouchMovement({
         }
       } else if (xRestraint === 'drag') {
         // TODO: set the drag factor as a config option
-        changeInX = xDirectionModifier * Math.pow(absChangeInX, 0.7);
+        changeInX = xDirectionModifier * Math.pow(absChangeInX, 0.75);
       }
 
       const currentTime = Date.now();
@@ -245,8 +244,9 @@ export default function useTouchMovement({
         y: velocityToUse,
       };
       stiffness = 200;
-      restSpeed = 0.1;
-      restDelta = 0.1;
+      restSpeed = 15;
+      restDelta = 15;
+      console.log('usin dis');
     } else {
       velocityToUse = velocity.current;
       stiffness = 240;
@@ -283,23 +283,32 @@ export default function useTouchMovement({
   }
 
   useEffect(() => {
-    prevTouchCoordinates.current = {
-      pageX: 0,
-      pageY: 0,
-    };
+    if (active) {
+      console.log('adding listener');
+      prevTouchCoordinates.current = {
+        pageX: 0,
+        pageY: 0,
+      };
 
-    el.current.addEventListener('touchstart', onTouchStartEvent);
-    el.current.addEventListener('touchmove', onTouchMoveEvent);
-    el.current.addEventListener('touchcancel', onTouchEndEvent);
-    el.current.addEventListener('touchend', onTouchEndEvent);
-
-    return () => {
-      el.current.remove('touchstart', onTouchStartEvent);
-      el.current.remove('touchmove', onTouchMoveEvent);
+      el.current.addEventListener('touchstart', onTouchStartEvent);
+      el.current.addEventListener('touchmove', onTouchMoveEvent);
+      el.current.addEventListener('touchcancel', onTouchEndEvent);
+      el.current.addEventListener('touchend', onTouchEndEvent);
+    } else {
+      console.log('removing');
+      el.current.removeEventListener('touchstart', onTouchStartEvent);
+      el.current.removeEventListener('touchmove', onTouchMoveEvent);
       el.current.removeEventListener('touchcancel', onTouchEndEvent);
       el.current.removeEventListener('touchend', onTouchEndEvent);
-    };
-  }, []);
+    }
+
+    // return () => {
+    //   el.current.removeEventListener('touchstart', onTouchStartEvent);
+    //   el.current.removeEventListener('touchmove', onTouchMoveEvent);
+    //   el.current.removeEventListener('touchcancel', onTouchEndEvent);
+    //   el.current.removeEventListener('touchend', onTouchEndEvent);
+    // };
+  }, [active]);
 
   return coordinates;
 }
