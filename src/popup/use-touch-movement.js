@@ -5,10 +5,22 @@ import springAnimation from './spring-animation';
 // then we will use a velocity of 0.
 const VELOCITY_CHECK_FREQUENCY = 100;
 
+function calculateDistance(one, two) {
+  const oneToUse = one.influencePoint ? one.influencePoint : one;
+  const twoToUse = two.influencePoint ? two.influencePoint : two;
+
+  // For performance, we don't take the square root as we are only
+  // comparing these values.
+  // Additionally, we are only working in Y for the time being.
+  // I need to handle situations where the user doesn't pass one
+  // (or both of) the axes.
+  return Math.abs(twoToUse.y - oneToUse.y);
+}
+
 export default function useTouchMovement({
   el,
   active,
-  position,
+  points = [],
   movement = {},
   onMovementEnd,
   onTouchStart,
@@ -16,6 +28,8 @@ export default function useTouchMovement({
   endingVelocity,
   endingVelocityScale = 12,
 }) {
+  const initialPosition = points.filter(v => v.initial)[0];
+
   const { x, y, left, right, up, down } = movement;
 
   const rightIsDisabled = right === null;
@@ -35,7 +49,10 @@ export default function useTouchMovement({
 
   // Tip: don't use `coordinates` within this hook. Use `currentCoordinates.current`
   // instead!
-  const [coordinates, updateCoordinates] = useState(position);
+  const [coordinates, updateCoordinates] = useState({
+    x: initialPosition.x,
+    y: initialPosition.y,
+  });
 
   // A reference to the `position` that was initially passed in.
   const initialCoordinates = useRef();
@@ -219,10 +236,23 @@ export default function useTouchMovement({
       pageY: 0,
     };
 
-    const initialX =
-      initialCoordinates.current.x - currentCoordinates.current.x;
-    const initialY =
-      initialCoordinates.current.y - currentCoordinates.current.y;
+    // This is how far we have moved.
+
+    const pointsWithDistance = points.map(p => {
+      return {
+        ...p,
+        distance: calculateDistance(p, currentCoordinates.current),
+      };
+    });
+
+    pointsWithDistance.sort((a, b) => {
+      return a.distance - b.distance;
+    });
+
+    const destinationPoint = pointsWithDistance[0];
+
+    const initialX = currentCoordinates.current.x - destinationPoint.x;
+    const initialY = currentCoordinates.current.y - destinationPoint.y;
 
     const currentTime = Date.now();
     const deltaTime = currentTime - lastMoveTime.current;
@@ -246,7 +276,6 @@ export default function useTouchMovement({
       stiffness = 200;
       restSpeed = 15;
       restDelta = 15;
-      console.log('usin dis');
     } else {
       velocityToUse = velocity.current;
       stiffness = 240;
@@ -256,16 +285,16 @@ export default function useTouchMovement({
 
     springAnimation({
       position: {
-        x: -initialX,
-        y: -initialY,
+        x: initialX,
+        y: initialY,
       },
       stiffness,
       velocity: velocityToUse,
       restSpeed,
       restDelta,
       onUpdate(update) {
-        const newX = update.x + initialCoordinates.current.x;
-        const newY = update.y + initialCoordinates.current.y;
+        const newX = update.x + destinationPoint.x;
+        const newY = update.y + destinationPoint.y;
 
         updateCoordinates({
           x: newX,
@@ -284,7 +313,6 @@ export default function useTouchMovement({
 
   useEffect(() => {
     if (active) {
-      console.log('adding listener');
       prevTouchCoordinates.current = {
         pageX: 0,
         pageY: 0,
@@ -295,7 +323,6 @@ export default function useTouchMovement({
       el.current.addEventListener('touchcancel', onTouchEndEvent);
       el.current.addEventListener('touchend', onTouchEndEvent);
     } else {
-      console.log('removing');
       el.current.removeEventListener('touchstart', onTouchStartEvent);
       el.current.removeEventListener('touchmove', onTouchMoveEvent);
       el.current.removeEventListener('touchcancel', onTouchEndEvent);

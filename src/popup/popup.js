@@ -20,10 +20,12 @@ export default function Popup() {
   const coordinates = useTouchMovement({
     el,
     active: isTouchActive,
-    position: {
-      x: 200,
-      y: 20,
-    },
+    points: [
+      // Offscreen
+      { x: 200, y: -250, influencePoint: { x: 200, y: -70 } },
+      // Onscreen
+      { x: 200, y: 20, initial: true },
+    ],
     movement: {
       x: null,
       // y: null,
@@ -34,17 +36,8 @@ export default function Popup() {
       // up: 'drag',
       down: 'drag',
     },
-    endingVelocity: true,
-    endingVelocityScale: 12,
-    onTouchStart() {
-      // console.log('Touch start');
-    },
-    onTouchEnd() {
-      // console.log('Touch end');
-    },
-    onMovementEnd() {
-      // console.log('Movement end');
-    },
+    // endingVelocity: true,
+    // endingVelocityScale: 12,
   });
 
   let coordsToUse;
