@@ -328,13 +328,6 @@ export default function useTouchMovement({
       el.current.removeEventListener('touchcancel', onTouchEndEvent);
       el.current.removeEventListener('touchend', onTouchEndEvent);
     }
-
-    // return () => {
-    //   el.current.removeEventListener('touchstart', onTouchStartEvent);
-    //   el.current.removeEventListener('touchmove', onTouchMoveEvent);
-    //   el.current.removeEventListener('touchcancel', onTouchEndEvent);
-    //   el.current.removeEventListener('touchend', onTouchEndEvent);
-    // };
   }, [active]);
 
   return coordinates;
