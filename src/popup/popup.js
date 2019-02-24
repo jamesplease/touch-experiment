@@ -40,7 +40,7 @@ export default function Popup() {
       className="popup"
       style={{
         top: `${coordinates.y}px`,
-        left: `${coordinates.x}px`,
+        // left: `${coordinates.x}px`,
       }}>
       Popup
     </div>
