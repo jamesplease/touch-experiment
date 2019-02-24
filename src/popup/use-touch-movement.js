@@ -296,6 +296,10 @@ export default function useTouchMovement({
         const newX = update.x + destinationPoint.x;
         const newY = update.y + destinationPoint.y;
 
+        // TODO: check if I am now closer to another point.
+        // If so, cancel this spring and start a new one.
+        // I'll need to track the velocity to ensure a smooth transition.
+
         updateCoordinates({
           x: newX,
           y: newY,
