@@ -140,37 +140,20 @@ export default function useTouchMovement({
       }
 
       // Manage "damping" the Y coordinates
-      if (changeInY > 0 && restraints.down !== null) {
-        const dampFactor =
-          1 -
-          linearScale({
-            domain: [0, restraints.down * 2],
-            range: [0, 0.5],
-            value: changeInY,
-          });
-        let dampedChangeInY = changeInY * dampFactor;
-
-        if (dampedChangeInY > restraints.down) {
-          dampedChangeInY = restraints.down;
+      if (changeInY > 0) {
+        if (typeof restraints.down === 'number') {
+          if (Math.abs(changeInY) > restraints.down) {
+            changeInY = restraints.down;
+          }
+        } else if (restraints.down === 'drag') {
+          const absoluteChange = Math.abs(changeInY);
+          changeInY = Math.pow(absoluteChange, 0.7);
         }
-
-        changeInY = dampedChangeInY;
       } else if (changeInY < 0) {
         if (typeof restraints.up === 'number') {
-          const dampFactor =
-            1 -
-            linearScale({
-              domain: [0, -restraints.up * 2],
-              range: [0, 0.5],
-              value: changeInY,
-            });
-          let dampedChangeInY = changeInY * dampFactor;
-
-          if (dampedChangeInY < -restraints.up) {
-            dampedChangeInY = -restraints.up;
+          if (Math.abs(changeInY) > restraints.up) {
+            changeInY = -restraints.up;
           }
-
-          changeInY = dampedChangeInY;
         } else if (restraints.up === 'drag') {
           const absoluteChange = Math.abs(changeInY);
           changeInY = -Math.pow(absoluteChange, 0.7);
