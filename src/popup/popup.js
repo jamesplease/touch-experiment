@@ -15,6 +15,8 @@ export default function Popup() {
       x: null,
       // y: null,
       // left: -50,
+      // left: 50,
+      // right: 25,
       // right: 100,
       up: 'drag',
       down: 'drag',
@@ -38,7 +40,7 @@ export default function Popup() {
       className="popup"
       style={{
         top: `${coordinates.y}px`,
-        // left: `${coordinates.x}px`,
+        left: `${coordinates.x}px`,
       }}>
       Popup
     </div>

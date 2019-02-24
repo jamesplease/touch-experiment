@@ -154,36 +154,19 @@ export default function useTouchMovement({
         changeInY = yDirectionModifier * Math.pow(absChangeInY, 0.7);
       }
 
-      if (changeInX > 0 && restraints.right !== null) {
-        const dampFactor =
-          1 -
-          linearScale({
-            domain: [0, restraints.right * 2],
-            range: [0, 0.5],
-            value: changeInX,
-          });
-        let dampedChangeInX = changeInX * dampFactor;
+      const hasChangedX = changeInX !== 0;
+      const xDirection = hasChangedX && changeInX > 0 ? 'right' : 'left';
+      const xRestraint = restraints[xDirection];
+      const absChangeInX = Math.abs(changeInX);
+      const xDirectionModifier = xDirection === 'left' ? -1 : 1;
 
-        if (dampedChangeInX > restraints.right) {
-          dampedChangeInX = restraints.right;
+      if (typeof xRestraint === 'number') {
+        if (absChangeInX > xRestraint) {
+          changeInX = xDirectionModifier * xRestraint;
         }
-
-        changeInX = dampedChangeInX;
-      } else if (changeInX < 0 && -restraints.left !== null) {
-        const dampFactor =
-          1 -
-          linearScale({
-            domain: [0, -restraints.left * 2],
-            range: [0, 0.5],
-            value: changeInX,
-          });
-        let dampedChangeInX = changeInX * dampFactor;
-
-        if (dampedChangeInX < -restraints.left) {
-          dampedChangeInX = -restraints.left;
-        }
-
-        changeInX = dampedChangeInX;
+      } else if (xRestraint === 'drag') {
+        // TODO: set the drag factor as a config option
+        changeInX = xDirectionModifier * Math.pow(absChangeInX, 0.7);
       }
 
       const currentTime = Date.now();
