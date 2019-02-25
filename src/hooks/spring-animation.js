@@ -14,7 +14,7 @@ export default function springAnimation({
   restDelta = 10,
   restSpeed = 10,
 }) {
-  spring({
+  return spring({
     from: position,
     velocity: velocity,
     to: { y: 0, x: 0 },
@@ -34,5 +34,5 @@ export default function springAnimation({
         onComplete();
       }
     },
-  });
+  }).stop;
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Popup from './popup/popup';
+import Overlay from './overlay/overlay';
 
 export default function App() {
   const [isShowingAlert, setIsShowingAlert] = useState(false);
@@ -8,7 +9,7 @@ export default function App() {
   useEffect(() => {
     setTimeout(() => {
       setIsShowingAlert(true);
-    }, 3000);
+    }, 1800);
   }, []);
 
   return (
@@ -20,6 +21,7 @@ export default function App() {
         disabled={isShowingAlert}>
         Show Alert
       </button>
+      <Overlay />
     </div>
   );
 }

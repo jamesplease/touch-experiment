@@ -17,6 +17,95 @@ function calculateDistance(one, two) {
   return Math.abs(twoToUse.y - oneToUse.y);
 }
 
+function springTo({
+  initialX,
+  initialY,
+  destinationPoint,
+  stiffness,
+  velocity,
+  restSpeed,
+  restDelta,
+  updateCoordinates,
+  isSpringingBack,
+  onMovementEnd,
+  points,
+}) {
+  const stop = springAnimation({
+    position: {
+      x: initialX,
+      y: initialY,
+    },
+    stiffness,
+    velocity,
+    restSpeed,
+    restDelta,
+    onUpdate(update) {
+      const newX = update.x + destinationPoint.x;
+      const newY = update.y + destinationPoint.y;
+
+      const currentPosition = {
+        x: newX,
+        y: newY,
+      };
+
+      const pointsWithDistance = points.map(p => {
+        return {
+          ...p,
+          distance: calculateDistance(p, currentPosition),
+        };
+      });
+
+      pointsWithDistance.sort((a, b) => {
+        return a.distance - b.distance;
+      });
+
+      const newDestinationPoint = pointsWithDistance[0];
+
+      // If our destination point within this update isn't the same one
+      // that we are springing to, then we switch. This allows you to "flick"
+      // an item over a threshold, rather than dragging it.
+      if (
+        newDestinationPoint.x !== destinationPoint.x ||
+        newDestinationPoint.y !== destinationPoint.y
+      ) {
+        stop();
+        springTo({
+          initialX: newX - newDestinationPoint.x,
+          initialY: newY - newDestinationPoint.y,
+          destinationPoint: newDestinationPoint,
+          stiffness,
+          velocity,
+          restSpeed,
+          restDelta,
+          updateCoordinates,
+          isSpringingBack,
+          onMovementEnd,
+          points,
+        });
+
+        return;
+        // springTo(destinationPoint)
+      }
+
+      // TODO: check if I am now closer to another point.
+      // If so, cancel this spring and start a new one.
+      // I'll need to track the velocity to ensure a smooth transition.
+
+      updateCoordinates({
+        x: newX,
+        y: newY,
+      });
+    },
+    onComplete() {
+      isSpringingBack.current = false;
+
+      if (typeof onMovementEnd === 'function') {
+        onMovementEnd(destinationPoint);
+      }
+    },
+  });
+}
+
 export default function useTouchMovement({
   el,
   active,
@@ -40,7 +129,9 @@ export default function useTouchMovement({
   const disableXMovement = (rightIsDisabled && leftIsDisabled) || x === null;
   const disableYMovement = (downIsDisabled && upIsDisabled) || y === null;
 
-  const restraints = {
+  const restraints = useRef();
+
+  restraints.current = {
     left: typeof left !== 'undefined' ? left : null,
     right: typeof right !== 'undefined' ? right : null,
     up: typeof up !== 'undefined' ? up : null,
@@ -133,8 +224,12 @@ export default function useTouchMovement({
     } else {
       const touch = touches[0];
 
-      const pageXDelta = touch.pageX - initialTouchCoordinates.current.pageX;
-      const pageYDelta = touch.pageY - initialTouchCoordinates.current.pageY;
+      const pageXDelta = initialTouchCoordinates.current
+        ? touch.pageX - initialTouchCoordinates.current.pageX
+        : 0;
+      const pageYDelta = initialTouchCoordinates.current
+        ? touch.pageY - initialTouchCoordinates.current.pageY
+        : 0;
 
       let changeInX;
       let changeInY;
@@ -157,7 +252,7 @@ export default function useTouchMovement({
 
       const hasChangedY = changeInY !== 0;
       const yDirection = hasChangedY && changeInY > 0 ? 'down' : 'up';
-      const yRestraint = restraints[yDirection];
+      const yRestraint = restraints.current[yDirection];
       const absChangeInY = Math.abs(changeInY);
       const yDirectionModifier = yDirection === 'up' ? -1 : 1;
 
@@ -172,7 +267,7 @@ export default function useTouchMovement({
 
       const hasChangedX = changeInX !== 0;
       const xDirection = hasChangedX && changeInX > 0 ? 'right' : 'left';
-      const xRestraint = restraints[xDirection];
+      const xRestraint = restraints.current[xDirection];
       const absChangeInX = Math.abs(changeInX);
       const xDirectionModifier = xDirection === 'left' ? -1 : 1;
 
@@ -283,35 +378,18 @@ export default function useTouchMovement({
       restDelta = 10;
     }
 
-    springAnimation({
-      position: {
-        x: initialX,
-        y: initialY,
-      },
+    springTo({
+      initialX,
+      initialY,
       stiffness,
       velocity: velocityToUse,
       restSpeed,
       restDelta,
-      onUpdate(update) {
-        const newX = update.x + destinationPoint.x;
-        const newY = update.y + destinationPoint.y;
-
-        // TODO: check if I am now closer to another point.
-        // If so, cancel this spring and start a new one.
-        // I'll need to track the velocity to ensure a smooth transition.
-
-        updateCoordinates({
-          x: newX,
-          y: newY,
-        });
-      },
-      onComplete() {
-        isSpringingBack.current = false;
-
-        if (typeof onMovementEnd === 'function') {
-          onMovementEnd(destinationPoint);
-        }
-      },
+      destinationPoint,
+      updateCoordinates,
+      isSpringingBack,
+      onMovementEnd,
+      points,
     });
   }
 

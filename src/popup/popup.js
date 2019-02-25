@@ -1,7 +1,7 @@
 import React, { useRef, useState, useLayoutEffect } from 'react';
 import classnames from 'classnames';
 import './popup.css';
-import useTouchMovement from './use-touch-movement';
+import useTouchMovement from '../hooks/use-touch-movement';
 
 export default function Popup({ onClose }) {
   const el = useRef();
