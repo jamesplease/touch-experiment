@@ -14,6 +14,12 @@ export default function App() {
   return (
     <div className="App">
       {isShowingAlert && <Popup onClose={() => setIsShowingAlert(false)} />}
+      <button
+        className="showAlert"
+        onClick={() => setIsShowingAlert(true)}
+        disabled={isShowingAlert}>
+        Show Alert
+      </button>
     </div>
   );
 }

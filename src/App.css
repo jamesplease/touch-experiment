@@ -7,3 +7,20 @@
 .App {
   width: 100%;
 }
+
+.showAlert {
+  font-size: 1rem;
+  display: block;
+  margin: 0 auto;
+  width: 150px;
+  background: #fff;
+  border: 1px solid #ddd;
+  margin-top: 200px;
+  padding: 13px;
+  border-radius: 10px;
+}
+
+.showAlert:disabled {
+  background: #f0f0f0;
+  color: #888;
+}
