@@ -117,8 +117,6 @@ export default function useTouchMovement({
   endingVelocity,
   endingVelocityScale = 12,
 }) {
-  const initialPosition = points.filter(v => v.initial)[0];
-
   const { x, y, left, right, up, down } = movement;
 
   const rightIsDisabled = right === null;
@@ -138,6 +136,7 @@ export default function useTouchMovement({
     down: typeof down !== 'undefined' ? down : null,
   };
 
+  const initialPosition = points.filter(v => v.initial)[0];
   // Tip: don't use `coordinates` within this hook. Use `currentCoordinates.current`
   // instead!
   const [coordinates, updateCoordinates] = useState({
@@ -166,6 +165,12 @@ export default function useTouchMovement({
 
   const isSpringingBack = useRef();
   const isIgnoringTouch = useRef();
+
+  const pointsRef = useRef();
+
+  useEffect(() => {
+    pointsRef.current = points;
+  }, [points]);
 
   // This is to handle an edge case. If you drag an item, let go,
   // and during its transition you try to touch it again, we set
@@ -333,7 +338,7 @@ export default function useTouchMovement({
 
     // This is how far we have moved.
 
-    const pointsWithDistance = points.map(p => {
+    const pointsWithDistance = pointsRef.current.map(p => {
       return {
         ...p,
         distance: calculateDistance(p, currentCoordinates.current),
@@ -389,7 +394,7 @@ export default function useTouchMovement({
       updateCoordinates,
       isSpringingBack,
       onMovementEnd,
-      points,
+      points: pointsRef.current,
     });
   }
 
