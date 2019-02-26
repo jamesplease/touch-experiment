@@ -183,8 +183,8 @@ export default function useTouchMovement({
 
   function onTouchStartEvent(e) {
     const touches = e.changedTouches;
-    e.preventDefault();
-    e.stopPropagation();
+    // e.preventDefault();
+    // e.stopPropagation();
 
     if (isSpringingBack.current) {
       isIgnoringTouch.current = true;
@@ -329,8 +329,6 @@ export default function useTouchMovement({
       onTouchEnd();
     }
 
-    isSpringingBack.current = true;
-
     prevTouchCoordinates.current = {
       pageX: 0,
       pageY: 0,
@@ -383,19 +381,25 @@ export default function useTouchMovement({
       restDelta = 10;
     }
 
-    springTo({
-      initialX,
-      initialY,
-      stiffness,
-      velocity: velocityToUse,
-      restSpeed,
-      restDelta,
-      destinationPoint,
-      updateCoordinates,
-      isSpringingBack,
-      onMovementEnd,
-      points: pointsRef.current,
-    });
+    // Only spring if there is somewhere to go
+    // This breaks the fuckin shit. HOW
+    if (initialY !== 0 || initialX !== 0) {
+      isSpringingBack.current = true;
+
+      springTo({
+        initialX,
+        initialY,
+        stiffness,
+        velocity: velocityToUse,
+        restSpeed,
+        restDelta,
+        destinationPoint,
+        updateCoordinates,
+        isSpringingBack,
+        onMovementEnd,
+        points: pointsRef.current,
+      });
+    }
   }
 
   useEffect(() => {
@@ -417,5 +421,32 @@ export default function useTouchMovement({
     }
   }, [active]);
 
-  return coordinates;
+  function transitionTo(point) {
+    const destinationPoint = pointsRef.current.filter(
+      v => v.label === point
+    )[0];
+    const initialX = currentCoordinates.current.x - destinationPoint.x;
+    const initialY = currentCoordinates.current.y - destinationPoint.y;
+
+    const velocityDirection = initialY > 0 ? -1 : 1;
+
+    springTo({
+      initialX,
+      initialY,
+      stiffness: 240,
+      restSpeed: 10,
+      restDelta: 10,
+      velocity: {
+        x: 0,
+        y: velocityDirection * 3000,
+      },
+      destinationPoint,
+      updateCoordinates,
+      isSpringingBack,
+      onMovementEnd,
+      points: pointsRef.current,
+    });
+  }
+
+  return [coordinates, transitionTo];
 }

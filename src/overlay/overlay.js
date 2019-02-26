@@ -1,10 +1,15 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import './overlay.css';
 import useTouchMovement from '../hooks/use-touch-movement';
 
 export default function Overlay() {
   const el = useRef();
   const [isOpen, setIsOpen] = useState(false);
+  const disableTouch = useRef();
+
+  useEffect(() => {
+    disableTouch.current = false;
+  }, []);
 
   const openInfluencePoint = isOpen
     ? null
@@ -21,7 +26,7 @@ export default function Overlay() {
       };
 
   // The points here will need to be computed based on the size of the browser window...
-  const coordinates = useTouchMovement({
+  const [coordinates, transitionTo] = useTouchMovement({
     el,
     active: true,
     points: [
@@ -41,6 +46,7 @@ export default function Overlay() {
     },
     onMovementEnd(endPosition) {
       setIsOpen(endPosition.label === 'open');
+      disableTouch.current = false;
     },
   });
 
@@ -49,7 +55,13 @@ export default function Overlay() {
       ref={el}
       className="overlay"
       onClick={e => {
-        console.log('Clicked!');
+        if (disableTouch.current) {
+          return;
+        }
+        disableTouch.current = true;
+
+        const targetPoint = isOpen ? 'closed' : 'open';
+        transitionTo(targetPoint);
       }}
       style={{
         top: `${coordinates.y}px`,

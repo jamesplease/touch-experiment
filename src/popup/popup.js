@@ -19,7 +19,7 @@ export default function Popup({ onClose }) {
     });
   }, []);
 
-  const coordinates = useTouchMovement({
+  const [coordinates] = useTouchMovement({
     el,
     active: isTouchActive,
     points: [
