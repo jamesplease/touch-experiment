@@ -28,7 +28,6 @@ export default function Overlay() {
   // The points here will need to be computed based on the size of the browser window...
   const [coordinates, transitionTo] = useTouchMovement({
     el,
-    active: true,
     points: [
       { x: 200, y: -400, label: 'open', influencePoint: openInfluencePoint },
       {
@@ -61,7 +60,7 @@ export default function Overlay() {
         disableTouch.current = true;
 
         const targetPoint = isOpen ? 'closed' : 'open';
-        transitionTo(targetPoint);
+        transitionTo(targetPoint, { speed: 3200 });
       }}
       style={{
         top: `${coordinates.y}px`,

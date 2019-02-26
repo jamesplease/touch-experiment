@@ -7,14 +7,8 @@
   position: fixed;
   height: 65px;
   left: 50%;
-  transform: translateX(-50%) translateY(-250px);
+  transform: translateX(-50%);
   padding: 20px;
   display: flex;
   align-items: center;
-  will-change: transform;
-}
-
-.popup-entered {
-  transition: transform 450ms ease-out;
-  transform: translateX(-50%) translateY(0);
 }

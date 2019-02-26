@@ -1,70 +1,66 @@
-import React, { useRef, useState, useLayoutEffect } from 'react';
-import classnames from 'classnames';
+import React, { useRef, useEffect, useState } from 'react';
 import './popup.css';
 import useTouchMovement from '../hooks/use-touch-movement';
 
+const MOD_TEST = 0;
+
 export default function Popup({ onClose }) {
   const el = useRef();
-  const [isTouchActive, setIsTouchActive] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
+  const [isIn, setIsIn] = useState(false);
 
-  useLayoutEffect(() => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setHasMounted(true);
-        setTimeout(() => {
-          setIsTouchActive(true);
-        }, 450);
-      });
-    });
-  }, []);
+  const outInfluencePoint = !isIn
+    ? null
+    : {
+        x: 200,
+        y: -70 + MOD_TEST,
+      };
 
-  const [coordinates] = useTouchMovement({
+  const inInfluencePoint = isIn
+    ? null
+    : {
+        x: 200,
+        y: -50 + MOD_TEST,
+      };
+
+  const [coordinates, transitionTo] = useTouchMovement({
     el,
-    active: isTouchActive,
     points: [
-      // Offscreen
-      { x: 200, y: -250, influencePoint: { x: 200, y: -70 }, label: 'out' },
-      // Onscreen
-      { x: 200, y: 20, initial: true },
+      {
+        x: 200,
+        y: -150 + MOD_TEST,
+        influencePoint: outInfluencePoint,
+        label: 'out',
+        initial: true,
+      },
+      {
+        x: 200,
+        y: 20 + MOD_TEST,
+        label: 'in',
+        influencePoint: inInfluencePoint,
+      },
     ],
     movement: {
       x: null,
-      // y: null,
-      // left: -50,
-      // left: 50,
-      // right: 25,
-      // right: 100,
-      // up: 'drag',
       down: 'drag',
     },
-    // endingVelocity: true,
-    // endingVelocityScale: 12,
     onMovementEnd(endPosition) {
+      setIsIn(endPosition.label === 'in');
       if (endPosition.label === 'out') {
         onClose();
       }
     },
   });
 
-  let coordsToUse;
-  if (!isTouchActive) {
-    coordsToUse = {
-      y: 20,
-    };
-  } else {
-    coordsToUse = coordinates;
-  }
+  useEffect(() => {
+    transitionTo('in', { speed: 2000 });
+  }, []);
 
   return (
     <div
       ref={el}
-      className={classnames('popup', {
-        'popup-entered': hasMounted,
-      })}
+      className="popup"
       style={{
-        top: `${coordsToUse.y}px`,
-        // left: `${coordinates.x}px`,
+        top: `${coordinates.y}px`,
       }}>
       You are offline.
     </div>

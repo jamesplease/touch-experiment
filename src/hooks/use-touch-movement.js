@@ -108,7 +108,7 @@ function springTo({
 
 export default function useTouchMovement({
   el,
-  active,
+  active = true,
   points = [],
   movement = {},
   onMovementEnd,
@@ -421,7 +421,7 @@ export default function useTouchMovement({
     }
   }, [active]);
 
-  function transitionTo(point) {
+  function transitionTo(point, { speed = 3000 } = {}) {
     const destinationPoint = pointsRef.current.filter(
       v => v.label === point
     )[0];
@@ -438,7 +438,7 @@ export default function useTouchMovement({
       restDelta: 10,
       velocity: {
         x: 0,
-        y: velocityDirection * 3000,
+        y: velocityDirection * speed,
       },
       destinationPoint,
       updateCoordinates,
