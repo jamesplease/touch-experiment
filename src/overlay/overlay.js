@@ -15,14 +15,14 @@ export default function Overlay() {
     ? null
     : {
         x: 200,
-        y: -200,
+        y: -255,
       };
 
   const closedInfluencePoint = !isOpen
     ? null
     : {
         x: 200,
-        y: -200,
+        y: -220,
       };
 
   // The points here will need to be computed based on the size of the browser window...
