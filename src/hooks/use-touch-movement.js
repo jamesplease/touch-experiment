@@ -83,6 +83,10 @@ export default function useTouchMovement({
 
   function onTouchStartEvent(e) {
     const touches = e.changedTouches;
+
+    if (touches.length !== 1) {
+      return;
+    }
     // e.preventDefault();
     // e.stopPropagation();
 
@@ -121,6 +125,11 @@ export default function useTouchMovement({
 
   function onTouchMoveEvent(e) {
     const touches = e.changedTouches;
+   
+    if (touches.length !== 1) {
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
 
