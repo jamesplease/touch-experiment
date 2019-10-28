@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import './overlay.css';
 import useTouchMovement from '../hooks/use-touch-movement';
 
-export default function Overlay() {
+export default function Overlay({ onClose }) {
   const el = useRef();
   const [isOpen, setIsOpen] = useState(false);
   const disableTouch = useRef();
@@ -32,7 +32,7 @@ export default function Overlay() {
       { x: 200, y: -400, label: 'open', influencePoint: openInfluencePoint },
       {
         x: 200,
-        y: -55,
+        y: -5,
         label: 'closed',
         initial: true,
         influencePoint: closedInfluencePoint,
@@ -40,14 +40,22 @@ export default function Overlay() {
     ],
     movement: {
       x: null,
-      up: !isOpen ? 400 - 55 : 'drag',
-      down: isOpen ? 400 - 55 : 0,
+      up: !isOpen ? 400 - 5 : 'drag',
+      down: isOpen ? 400 - 5 : 0,
     },
     onMovementEnd(endPosition) {
       setIsOpen(endPosition.label === 'open');
       disableTouch.current = false;
+
+      if (endPosition.label === 'closed') {
+        onClose();
+      }
     },
   });
+
+  useEffect(() => {
+    transitionTo('open', { speed: 3600 });
+  }, []);
 
   return (
     <div
