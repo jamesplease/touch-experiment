@@ -40,7 +40,7 @@ export default function Overlay() {
     ],
     movement: {
       x: null,
-      up: !isOpen ? 400 - 55 : 0,
+      up: !isOpen ? 400 - 55 : 'drag',
       down: isOpen ? 400 - 55 : 0,
     },
     onMovementEnd(endPosition) {
